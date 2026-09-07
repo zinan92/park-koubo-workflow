@@ -1,6 +1,6 @@
 # 口播视频 Workflow（Talking-Head Video Editing & Motion Workflow）
 
-状态：v2.3  
+状态：v2.4
 最后更新：2026-09-07  
 适用范围：Park 的口播视频剪辑、Hook、字幕、B-roll、动效、BGM、SFX 与最终交付
 
@@ -125,6 +125,18 @@ Product A 与 Product B 使用相同的画幅、FPS、编码、色彩空间、�
 
 ## 7. 十四步流程
 
+十四步归入五个大阶段，但编号和先后关系保持不变：
+
+| 大阶段 | Steps | 阶段完成标准 |
+| --- | ---: | --- |
+| Preparation | 1–4 | 素材保全，粗剪与可靠字幕时间就绪 |
+| Hook & Product A | 5–9 | Hook 批准并独立成片，QA A 通过 |
+| Body & Visual Direction | 10–11 | 正文 Picture Lock，视觉规格批准并渲染 |
+| Sound & Product B | 12–13 | 声音、最高层字幕与 QA B 完成 |
+| Final Delivery | 14 | A/B 合并，QA Final 与最终验收完成 |
+
+正常路径只有三个人工审批门：Step 5 的 Hook、Step 11 的 Visual Spec、Step 14 后的 Final。审批对象未生成前继续自动执行；缺少素材、凭据或删除拍摄指令属于异常阻塞，不增加常规审批环节。
+
 ### Step 1：口播项目设置
 
 - 记录原始视频、剪映粗剪、可选 SRT、画幅、平台和输出目录。
@@ -232,7 +244,7 @@ Product A 与 Product B 使用相同的画幅、FPS、编码、色彩空间、�
 
 ### Step 11：正文视觉轨道
 
-逐段决定：
+`video-shotcraft` 在 Picture Lock 后作为 Product B 的视觉总导演，逐段决定：
 
 ```text
 保持人脸
@@ -243,6 +255,8 @@ Product A 与 Product B 使用相同的画幅、FPS、编码、色彩空间、�
 ```
 
 只有实际使用视觉增强时才生成 `part-b-body/visual-plan.json`。它是可执行的镜头合同：每个镜头至少写明时间范围、用途、素材来源，以及 `cue_points` 中的 enter、reveal、hold、exit；不要求固定视觉间隔，也不设置“每 20 秒一个视觉点”。
+
+视觉覆盖率按 Product B 中 B-roll、截图、图表、Illustration、透明动效和全屏动画区间的时间并集计算，重叠只计一次；Hook、人脸原画面、字幕、BGM 和 SFX 不计入。默认目标为 30%–40%，但不得为了达标添加无意义画面；超出范围时在 spec table 写明原因并随本阶段一起批准。
 
 B-roll 优先使用本人真实素材；外部素材必须记录来源、关闭原声，并且不能用来证明素材本身无法证明的事实。
 
@@ -353,7 +367,7 @@ project/     可编辑视觉工程
 - 不围绕它们设计目录、接口或步骤。
 - 不为了复用旧代码引入旧的 handholding、默认节奏和 fallback。
 - 某个简单实现有参考价值时，可以阅读后直接重写当前所需版本。
-- `video-shotcraft` 可作为 Step 11 的镜头设计与实现工具库，但不把具体卡片清单固化进 Workflow。
+- `video-shotcraft` 是 Step 11 的视觉总导演，统一规划 B-roll、截图、图表、Illustration 和动画；不把具体卡片清单固化进 Workflow，也不接管 Hook、字幕、声音或最终合并。
 - 多镜头时优先把每个镜头做成独立透明视觉层，便于单独修改和重渲；这是实现策略，不是强制步骤。
 - FFmpeg、Remotion、HyperFrames 或其他工具由 AI 根据当前任务直接调用。
 
