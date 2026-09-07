@@ -22,3 +22,10 @@ python3 "$renderer" \
   --basename ask-park-video-flow \
   --verify \
   --check
+
+if command -v magick >/dev/null 2>&1; then
+  optimized_gif="$(mktemp /tmp/ask-park-video-flow-optimized.XXXXXX.gif)"
+  magick "$repo_dir/assets/ask-park-video-flow.gif" \
+    -coalesce -colors 128 -layers Optimize "$optimized_gif"
+  mv "$optimized_gif" "$repo_dir/assets/ask-park-video-flow.gif"
+fi
