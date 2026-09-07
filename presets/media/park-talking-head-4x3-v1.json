@@ -1,0 +1,40 @@
+{
+  "schema_version": "ask-park-video/media-preset/v1",
+  "id": "park-talking-head-4x3-v1",
+  "status": "default",
+  "video": {
+    "width": 1440,
+    "height": 1080,
+    "aspect_ratio": "4:3",
+    "fps": 30,
+    "codec": "h264",
+    "encoder": "libx264",
+    "preset": "medium",
+    "crf": 18,
+    "pixel_format": "yuv420p",
+    "gop_frames": 60,
+    "color_primaries": "bt709",
+    "color_transfer": "bt709",
+    "color_space": "bt709"
+  },
+  "audio": {
+    "codec": "aac",
+    "sample_rate_hz": 48000,
+    "channels": 2,
+    "bitrate_kbps": 192
+  },
+  "concatenate_match_fields": [
+    "width",
+    "height",
+    "fps",
+    "codec",
+    "pixel_format",
+    "color_primaries",
+    "color_transfer",
+    "color_space",
+    "audio.codec",
+    "audio.sample_rate_hz",
+    "audio.channels"
+  ],
+  "on_aspect_ratio_mismatch": "blocked_missing_media_and_caption_preset"
+}

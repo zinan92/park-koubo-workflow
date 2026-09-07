@@ -1,0 +1,39 @@
+{
+  "schema_version": "ask-park-video/caption-layout/v1",
+  "id": "park-caption-layout-v1",
+  "caption_style_id": "park-caption-4x3-v1",
+  "text_source": "approved_aligned_subtitles",
+  "segmentation_priority": [
+    "user-approved slash segmentation",
+    "complete semantic phrase",
+    "punctuation boundary",
+    "rendered-width fallback"
+  ],
+  "line_policy": {
+    "preferred_lines": 1,
+    "max_lines": 2,
+    "wrap_only_when_rendered_width_exceeds_style_max": true,
+    "wrap_at_semantic_boundary": true,
+    "fixed_character_count": false,
+    "keep_words_and_numbers_intact": true
+  },
+  "timing_policy": {
+    "follow_aligned_speech": true,
+    "fixed_dwell_time": false,
+    "allow_unexplained_gap_during_continuous_speech": false,
+    "allow_overlap": false,
+    "clip_to_product_boundary": true
+  },
+  "background_policy": {
+    "follow_rendered_text_width": true,
+    "horizontal_space_comes_from_style_padding": true,
+    "full_width": false
+  },
+  "qa": {
+    "require_first_and_last_word_present": true,
+    "require_semantic_breaks": true,
+    "require_no_missing_caption_during_continuous_speech": true,
+    "require_product_a_b_same_style_id": true,
+    "require_visual_frame_sampling": true
+  }
+}

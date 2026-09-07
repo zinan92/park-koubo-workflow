@@ -1,0 +1,35 @@
+{
+  "schema_version": "ask-park-video/audio-preset/v1",
+  "id": "park-voice-v1",
+  "status": "default",
+  "voice": {
+    "normalization": "ebu-r128-loudnorm-two-pass",
+    "integrated_lufs": -16,
+    "loudness_range_lu": 7,
+    "true_peak_dbtp": -1.5,
+    "preserve_original_voice": true
+  },
+  "bgm": {
+    "enabled_by_default": false,
+    "when_enabled": {
+      "require_asset_source": true,
+      "require_project_gain_override": true,
+      "require_ducking_under_speech": true,
+      "require_listening_qa": true
+    }
+  },
+  "sfx": {
+    "enabled_by_default": false,
+    "when_enabled": {
+      "require_asset_source": true,
+      "require_cue_and_gain_override": true,
+      "require_listening_qa": true
+    }
+  },
+  "final_qa": {
+    "remeasure_integrated_loudness": true,
+    "remeasure_true_peak": true,
+    "reject_clipping": true,
+    "voice_has_priority": true
+  }
+}

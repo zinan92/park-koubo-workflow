@@ -1,6 +1,6 @@
 # 口播视频 Workflow（Talking-Head Video Editing & Motion Workflow）
 
-状态：v2.4
+状态：v2.5
 最后更新：2026-09-07  
 适用范围：Park 的口播视频剪辑、Hook、字幕、B-roll、动效、BGM、SFX 与最终交付
 
@@ -85,6 +85,7 @@ Product A 与 Product B 使用相同的画幅、FPS、编码、色彩空间、�
 4. 字幕在两支 Product 中都最后烧录，并位于最上层。
 5. Final Product 必须能完整播放，连接处不能有损坏流、黑帧或明显音量跳变。
 6. 可复跑的脚本与验收证据必须随成片归档，不留在临时目录。
+7. 每个项目必须记录版本化的媒体、声音、字幕样式和字幕排版 preset；Agent 不临场重新设计默认值。
 
 除此之外，AI 可以根据实际素材选择最短执行路径。某项没有必要时，直接跳过并在 `process-log.md` 写一句原因，不需要为空步骤制造文件。
 
@@ -137,11 +138,14 @@ Product A 与 Product B 使用相同的画幅、FPS、编码、色彩空间、�
 
 正常路径只有三个人工审批门：Step 5 的 Hook、Step 11 的 Visual Spec、Step 14 后的 Final。审批对象未生成前继续自动执行；缺少素材、凭据或删除拍摄指令属于异常阻塞，不增加常规审批环节。
 
+默认生产参数以仓库中的四个文件为准：`presets/media/park-talking-head-4x3-v1.json`、`presets/audio/park-voice-v1.json`、`presets/captions/park-caption-4x3-v1.json` 和 `presets/captions/park-caption-layout-v1.json`。项目只记录 preset ID；需要改变时新建有版本号的 override，不在渲染脚本中散落参数。
+
 ### Step 1：口播项目设置
 
 - 记录原始视频、剪映粗剪、可选 SRT、画幅、平台和输出目录。
 - 直接设置 `content_type: talking_head_video`。
 - 建立 Product A、Product B 和 Final 三个目标。
+- 4:3 项目默认载入四个 production preset，并把 ID 写入 `project.json`；其他画幅没有匹配 preset 时标记 blocked。
 
 产物：`project.json`、`process-log.md`。
 
@@ -186,7 +190,7 @@ Product A 与 Product B 使用相同的画幅、FPS、编码、色彩空间、�
 - AI 从字幕和音频中提出 Hook 候选。
 - 候选保留原话、来源时间、推荐理由和批准状态即可，不要求复杂评分字段。
 - 用户批准最终句子和顺序。
-- 在 `project.json` 中冻结 Product A/B 共用的媒体规格、响度目标和字幕样式。
+- 在 `project.json` 中冻结 Product A/B 共用的 media、audio、caption-style 和 caption-layout preset ID。
 - Hook 放到开头后，正文原位置保持不变。
 
 产物：`analysis/hook-candidates.json`、更新后的 `project.json`。
@@ -220,7 +224,7 @@ Product A 与 Product B 使用相同的画幅、FPS、编码、色彩空间、�
 ### Step 9：Product A 成品与 QA
 
 - 做必要的人声清洁和响度统一。
-- 最后烧录字幕。
+- 按冻结的 caption preset 最后烧录字幕；4:3 默认必须是窄黑底、随文字宽度变化、轻圆角、底部居中，不得退化成白字描边。
 - 输出 `part-a-hook/video.mp4`。
 - 执行 Product A 唯一一次正式 QA：句子完整、顺序正确、字幕正确、规格正确、可完整播放。
 
@@ -264,7 +268,7 @@ B-roll 优先使用本人真实素材；外部素材必须记录来源、关闭�
 
 ### Step 12：正文声音轨道
 
-- A1：人声清洁与响度。
+- A1：按 `park-voice-v1` 做人声清洁与响度；默认目标为 -16 LUFS、LRA 7、True Peak -1.5 dBTP。
 - A2：按需加入 BGM。
 - A3：按需加入 SFX。
 
@@ -272,8 +276,8 @@ B-roll 优先使用本人真实素材；外部素材必须记录来源、关闭�
 
 ### Step 13：Product B 成品与 QA
 
-- 根据 Picture Lock 生成或调整 Product B 字幕。
-- 最后把字幕烧到最高层。
+- 根据 Picture Lock 和冻结的 caption-layout preset 生成或调整 Product B 字幕。
+- 按与 Product A 相同的 caption-style preset，最后把字幕烧到最高层。
 - 字幕覆盖 B-roll/动效不是错误；只检查实际可读性、裁切和时间。
 - 输出 `part-b-body/video.mp4`。
 - 执行 Product B 唯一一次正式 QA：正文完整、画面正常、人声清楚、字幕正确、媒体可完整播放。
@@ -320,7 +324,7 @@ project/     可编辑视觉工程
 - Hook 顺序与批准一致。
 - 不多字、不少字、不截半句。
 - 只有人脸、原声和字幕。
-- 字幕和媒体规格正确。
+- 字幕与冻结的 caption preset 一致，媒体与声音 preset 正确。
 - 可完整播放。
 
 ### QA B：Product B
@@ -329,7 +333,7 @@ project/     可编辑视觉工程
 - 人工粗剪没有明显断词或异常跳切。
 - 实际使用的 B-roll、动效、BGM 和 SFX 正常。
 - 每个视觉镜头抽查 enter、reveal、hold、exit 四个关键帧。
-- 字幕最后烧录且可读。
+- 字幕最后烧录且可读，Product A/B 的 caption preset ID 相同。
 - 人声清楚，视频可完整播放。
 
 ### QA Final
@@ -359,6 +363,7 @@ project/     可编辑视觉工程
 - **JPEG 中间帧产生 `yuvj420p`** —— 平台重编码时可能整体偏移对比度。
 - **Hook 只有判决没有对象** —— 观众代入不了。
 - **生成了文件就写成完成。**
+- **只写“冻结字幕样式”却没有 preset。** —— Agent 会在圆角黑底、白字描边和全宽 Banner 之间临场猜测；必须读取版本化 preset，并在 QA 对照 ID。
 
 ## 10. 工具策略
 

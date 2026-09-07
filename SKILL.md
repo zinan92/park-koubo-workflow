@@ -9,6 +9,13 @@ Act as the top-level director and state router for one talking-head video projec
 
 Read `VIDEO_WORKFLOW.md` completely before the first run in a project. Treat it as the canonical detailed workflow. Keep this file focused on routing, completion criteria, approvals, and the `video-shotcraft` boundary.
 
+Load the versioned production presets instead of inventing project-local defaults:
+
+- before Step 1, read `presets/media/park-talking-head-4x3-v1.json` and `presets/audio/park-voice-v1.json`;
+- before generating or rendering captions, read `presets/captions/park-caption-4x3-v1.json` and `presets/captions/park-caption-layout-v1.json`.
+
+Record all four preset IDs in `project.json`. Use another value only through a named, versioned project override. A 4:3 project without an override uses these defaults; a different aspect ratio blocks on a matching media and caption preset rather than triggering ad-hoc redesign.
+
 ## Entry contract
 
 Accept any of:
@@ -19,7 +26,7 @@ Accept any of:
 
 On every invocation:
 
-1. Locate the project root and inspect media, subtitles, `project.json`, `process-log.md`, and existing outputs.
+1. Locate the project root and inspect media, subtitles, selected preset IDs, `project.json`, `process-log.md`, and existing outputs.
 2. Reconstruct state from artifacts. A status label without its required artifact is not evidence of completion.
 3. Select the earliest step whose completion criterion is not satisfied.
 4. Execute continuously until reaching a human gate, a real blocker, or final completion.
@@ -48,6 +55,8 @@ A gate becomes current only when its review artifact exists. Until then, continu
 ### H1 — Hook Approval at Step 5
 
 Present Hook candidates with exact quote, source time, why it works, and proposed order. Wait for the user to approve the sentences and order before Step 7 extraction. Record the decision in `project.json` and the approved candidate set.
+
+Freeze the Product A/B shared media, audio, caption-style, and caption-layout preset IDs at this gate. This approves the Hook decision; it does not invite a new caption design unless the user explicitly requests an override.
 
 ### H2 — Visual Spec Approval inside Step 11
 
@@ -121,7 +130,7 @@ Use the completion criteria below to select the next step; consult `VIDEO_WORKFL
 
 | Step | Route action | Required completion evidence |
 | ---: | --- | --- |
-| 1 | Create project contract | Valid `project.json` with Product A/B/Final targets |
+| 1 | Create project contract | Valid `project.json` with Product A/B/Final targets and four preset IDs |
 | 2 | Preserve source material | Inputs inventoried and untouched copies identified |
 | 3 | Inspect media and subtitle state | Specs plus hard-subtitle finding recorded |
 | 4 | Validate or align subtitle sources | Usable `subtitles/source.srt`; different text/timing sources aligned |
@@ -129,11 +138,11 @@ Use the completion criteria below to select the next step; consult `VIDEO_WORKFL
 | 6 | Build Content Map | Complete body map with visual/audio opportunities |
 | 7 | Extract Hook clips | Each clip is word-complete and boundary-checked by listening |
 | 8 | Assemble Hook data | Approved order plus Product A subtitle data |
-| 9 | Render Product A | `part-a-hook/video.mp4` and passing QA A |
+| 9 | Render Product A | Preset-rendered captions, `part-a-hook/video.mp4`, and passing QA A |
 | 10 | Accept rough cut / Picture Lock | `clean-master.mp4` and `edit.json` |
 | 11 | Plan and render visual track | H2-approved `visual-plan.json`, spec snapshot, and passing visual QA |
-| 12 | Build sound track | Voice processed; optional BGM/SFX recorded in `audio-plan.json` |
-| 13 | Render Product B | Top-layer captions, `part-b-body/video.mp4`, and passing QA B |
+| 12 | Build sound track | Audio preset applied; optional BGM/SFX overrides recorded in `audio-plan.json` |
+| 13 | Render Product B | Same preset-rendered top-layer captions, `part-b-body/video.mp4`, and passing QA B |
 | 14 | Concatenate and deliver | `final/video.mp4`, passing QA Final, then H3 approval |
 
 ## State record
@@ -145,6 +154,12 @@ Maintain at least this state in `project.json` or an equivalent existing structu
   "workflow": "ask-park-video/v1",
   "current_step": 1,
   "current_gate": null,
+  "presets": {
+    "media": "park-talking-head-4x3-v1",
+    "audio": "park-voice-v1",
+    "caption_style": "park-caption-4x3-v1",
+    "caption_layout": "park-caption-layout-v1"
+  },
   "step_status": {},
   "approvals": {
     "hook": null,

@@ -13,7 +13,7 @@
 
 **把剪映粗剪视频与 SRT，持续路由成 Hook、正文视觉、声音、字幕和经过 QA 的最终成片。**
 
-[看流程](#它怎么工作) · [安装](#快速开始) · [视觉导演](#video-shotcraft-视觉导演) · [审批门](#三个人工审批门) · [完整规范](VIDEO_WORKFLOW.md)
+[看流程](#它怎么工作) · [生产预设](#生产预设) · [安装](#快速开始) · [视觉导演](#video-shotcraft-视觉导演) · [审批门](#三个人工审批门) · [完整规范](VIDEO_WORKFLOW.md)
 
 </div>
 
@@ -62,6 +62,21 @@ Ask Park Video 把这些决定写成一个可恢复的路由器。它根据已�
 3. 找到最早没有通过完成条件的 Step；
 4. 自动持续执行，直到审批门、真实阻塞或最终完成；
 5. 保存当前 Step、证据和审批记录，下次从这里继续。
+
+---
+
+## 生产预设
+
+Skill 不再要求 Agent “冻结一个没有定义的样式”。4:3 口播默认直接读取四个版本化 preset：
+
+| Preset | 固定内容 | 默认值摘要 |
+| --- | --- | --- |
+| [caption style](presets/captions/park-caption-4x3-v1.json) | 字体、颜色、黑底、圆角、位置、缩放 | PingFang SC 40；`#FFFDF6`；窄黑底；底部居中 40px |
+| [caption layout](presets/captions/park-caption-layout-v1.json) | 断句、换行、时间与 QA | 优先一行、最多两行；按语义断句；背景跟随文字宽度 |
+| [media](presets/media/park-talking-head-4x3-v1.json) | 画幅、FPS、编码、色彩与采样率 | 1440×1080、30fps、H.264、BT.709、AAC 48kHz |
+| [audio](presets/audio/park-voice-v1.json) | 人声响度与可选声音轨规则 | -16 LUFS、LRA 7、True Peak -1.5 dBTP；BGM/SFX 默认关闭 |
+
+这些值按 reference canvas 等比缩放。当前默认只支持 4:3；其他画幅必须选择新的版本化 preset，不能临场换成白字描边、全宽 Banner 或其他字幕设计。
 
 ---
 
@@ -170,6 +185,8 @@ park-koubo-workflow/
 ├── VIDEO_WORKFLOW.md                # 14 步详细流程的 canonical truth
 ├── tests/router-cases.json          # Resume 与 Gate 路由用例
 ├── examples/router-dry-run.md       # 可检查的最小路由示例
+├── presets/                         # 媒体、声音、字幕样式与排版真值
+├── scripts/validate_presets.py      # 检查四个 preset 的交叉一致性
 ├── scripts/render-showcase.sh       # 从 spec 重建 PNG/GIF/Excalidraw
 ├── assets/ask-park-video-flow.*     # GIF、PNG、Excalidraw 与生成 spec
 └── diagram/park-koubo-workflow.*    # 完整静态流程图
@@ -183,6 +200,7 @@ park-koubo-workflow/
 
 ```bash
 python3 /path/to/skill-creator/scripts/quick_validate.py .
+python3 scripts/validate_presets.py
 jq empty tests/router-cases.json assets/ask-park-video-flow.spec.json
 ```
 

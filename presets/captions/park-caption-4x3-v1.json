@@ -1,0 +1,84 @@
+{
+  "schema_version": "ask-park-video/caption-style/v1",
+  "id": "park-caption-4x3-v1",
+  "status": "default",
+  "reference_canvas": {
+    "width": 1440,
+    "height": 1080,
+    "aspect_ratio": "4:3",
+    "fps": 30
+  },
+  "compatibility": {
+    "supported_aspect_ratio": "4:3",
+    "on_mismatch": "blocked_missing_caption_preset"
+  },
+  "renderer_contract": {
+    "preferred": "remotion-css-or-equivalent",
+    "required": "fit-content rounded background",
+    "noncompliant": [
+      "outline-only ASS subtitles",
+      "full-width banner",
+      "progress bar",
+      "word-by-word highlighting"
+    ]
+  },
+  "typography": {
+    "font_stack": [
+      "PingFang SC",
+      "STHeiti",
+      "Microsoft YaHei",
+      "Noto Sans CJK SC",
+      "Arial",
+      "sans-serif"
+    ],
+    "font_size_px": 40,
+    "font_weight": 650,
+    "line_height": 1.24,
+    "letter_spacing_px": 0,
+    "text_align": "center",
+    "color": "#FFFDF6"
+  },
+  "container": {
+    "width_mode": "fit-content",
+    "max_width_px": 1160,
+    "padding_px": {
+      "top": 11,
+      "right": 24,
+      "bottom": 13,
+      "left": 24
+    },
+    "border_radius_px": 14,
+    "background": "rgba(9, 12, 10, 0.84)",
+    "box_shadow": {
+      "x_px": 0,
+      "y_px": 8,
+      "blur_px": 28,
+      "color": "rgba(0, 0, 0, 0.22)"
+    }
+  },
+  "placement": {
+    "anchor": "bottom-center",
+    "bottom_margin_px": 40,
+    "horizontal_centered": true
+  },
+  "entrance": {
+    "type": "fade",
+    "frames": 4,
+    "easing": "cubic-bezier(0.16, 1, 0.3, 1)",
+    "exit": "cut-with-cue"
+  },
+  "scaling": {
+    "mode": "reference-height-ratio",
+    "factor": "output_height / 1080",
+    "apply_to": [
+      "font_size_px",
+      "max_width_px",
+      "padding_px",
+      "border_radius_px",
+      "bottom_margin_px",
+      "box_shadow.y_px",
+      "box_shadow.blur_px"
+    ],
+    "rounding": "nearest-integer"
+  }
+}
