@@ -1,0 +1,8 @@
+interface:
+  display_name: "Ask Park Video"
+  short_description: "路由口播视频十四步流程、ShotCraft视觉规划与三个人工审批门"
+  default_prompt: "Use $ask-park-video to start or resume this talking-head video project and route it to the next verified step."
+
+policy:
+  allow_implicit_invocation: false
+

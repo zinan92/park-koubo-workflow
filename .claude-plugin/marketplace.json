@@ -1,0 +1,25 @@
+{
+  "name": "park-koubo-workflow",
+  "owner": {
+    "name": "zinan92",
+    "url": "https://github.com/zinan92"
+  },
+  "metadata": {
+    "description": "Marketplace for the Ask Park Video talking-head workflow router."
+  },
+  "plugins": [
+    {
+      "name": "ask-park-video",
+      "description": "Route a talking-head video through 14 verified steps, Video ShotCraft visual direction, and three human approval gates.",
+      "version": "1.0.0",
+      "author": {
+        "name": "zinan92",
+        "url": "https://github.com/zinan92"
+      },
+      "source": "./",
+      "category": "productivity",
+      "homepage": "https://github.com/zinan92/park-koubo-workflow"
+    }
+  ]
+}
+

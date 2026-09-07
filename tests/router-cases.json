@@ -1,0 +1,38 @@
+[
+  {
+    "name": "fresh-project",
+    "given": "No project.json and only a rough cut plus SRT are present",
+    "expected_next_step": 1,
+    "expected_current_gate": null
+  },
+  {
+    "name": "hook-selection",
+    "given": "Steps 1-4 pass and Hook candidates exist without approval",
+    "expected_next_step": 5,
+    "expected_current_gate": "H1"
+  },
+  {
+    "name": "visual-planning",
+    "given": "Step 10 passes and no visual-plan.json exists",
+    "expected_next_step": 11,
+    "expected_current_gate": null
+  },
+  {
+    "name": "visual-approval",
+    "given": "visual-plan.json and spec table exist but visual_spec approval is null",
+    "expected_next_step": 11,
+    "expected_current_gate": "H2"
+  },
+  {
+    "name": "final-approval",
+    "given": "Step 14 and QA Final pass but final approval is null",
+    "expected_next_step": 14,
+    "expected_current_gate": "H3"
+  },
+  {
+    "name": "complete-project",
+    "given": "All required artifacts, QA results, and H1-H3 approvals exist",
+    "expected_next_step": null,
+    "expected_current_gate": null
+  }
+]
