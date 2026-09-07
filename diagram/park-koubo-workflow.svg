@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1780" role="img" aria-labelledby="title desc">
+  <title id="title">口播视频 Workflow v2.1：Product A Hook 与 Product B 正文</title>
+  <desc id="desc">口播视频从剪映人工粗剪进入，共享完成素材检查、逐词字幕、Hook 选择和内容地图，然后分为纯人脸 Hook 与增强正文两个产品，最后在 Step 14 合并交付。</desc>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Noto+Sans+SC:wght@400;500;600;700&amp;display=swap');
+    text { font-family: 'Noto Sans SC', 'PingFang SC', 'JetBrains Mono', sans-serif; }
+    .title { fill:#f8fafc; font-size:32px; font-weight:700; letter-spacing:-1px; }
+    .subtitle { fill:#94a3b8; font-size:14px; }
+    .section { fill:#22d3ee; font-size:12px; font-weight:700; letter-spacing:2px; }
+    .step-num { fill:#fbbf24; font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700; }
+    .step-title { fill:#f8fafc; font-size:16px; font-weight:700; }
+    .body { fill:#cbd5e1; font-size:13px; }
+    .small { fill:#94a3b8; font-size:11px; }
+    .tiny { fill:#64748b; font-family:'JetBrains Mono',monospace; font-size:10px; }
+    .mono { font-family:'JetBrains Mono','SFMono-Regular',Menlo,monospace; }
+    .shared { fill:rgba(8,51,68,.34); stroke:#22d3ee; stroke-width:1.6; }
+    .part-a { fill:rgba(6,78,59,.28); stroke:#34d399; stroke-width:1.6; }
+    .part-b { fill:rgba(120,53,15,.22); stroke:#fbbf24; stroke-width:1.6; }
+    .final { fill:rgba(59,130,246,.26); stroke:#60a5fa; stroke-width:2.2; }
+    .region-a { fill:rgba(6,78,59,.08); stroke:#34d399; stroke-width:1.4; stroke-dasharray:9 6; }
+    .region-b { fill:rgba(120,53,15,.07); stroke:#fbbf24; stroke-width:1.4; stroke-dasharray:9 6; }
+    .note { fill:rgba(30,41,59,.82); stroke:#475569; stroke-width:1.2; }
+    .warning { fill:rgba(136,19,55,.18); stroke:#fb7185; stroke-width:1.3; }
+    .line { fill:none; stroke:#64748b; stroke-width:1.8; marker-end:url(#arrow); }
+    .line-a { fill:none; stroke:#34d399; stroke-width:2; marker-end:url(#arrow-green); }
+    .line-b { fill:none; stroke:#fbbf24; stroke-width:2; marker-end:url(#arrow-amber); }
+    .merge { fill:none; stroke:#60a5fa; stroke-width:2.2; marker-end:url(#arrow-blue); }
+    .pill { fill:rgba(15,23,42,.9); stroke:#475569; stroke-width:1; }
+    .pill-text { fill:#e2e8f0; font-family:'JetBrains Mono',monospace; font-size:11px; text-anchor:middle; }
+  </style>
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#1e293b" stroke-width=".65" />
+    </pattern>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#64748b"/></marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#34d399"/></marker>
+    <marker id="arrow-amber" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#fbbf24"/></marker>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#60a5fa"/></marker>
+  </defs>
+
+  <rect width="2000" height="1780" fill="#0f172a" />
+  <rect width="2000" height="1780" fill="url(#grid)" opacity=".8" />
+
+  <text x="60" y="62" class="title">口播视频 Workflow v2.1</text>
+  <text x="60" y="94" class="subtitle">不猜视频类型。默认口播人脸；共享准备后分成 Product A Hook 与 Product B 正文，最后在 Step 14 合并。</text>
+  <rect x="1652" y="43" width="288" height="34" rx="17" class="pill" />
+  <text x="1796" y="65" class="pill-text">TALKING-HEAD EDITOR · 14 STEPS</text>
+
+  <!-- Input contract -->
+  <text x="60" y="142" class="section">INPUT / 剪映人工粗剪是有效上游</text>
+  <rect x="60" y="162" width="590" height="94" rx="13" class="note" />
+  <text x="86" y="198" class="step-title">推荐输入</text>
+  <text x="86" y="225" class="body">原始录制视频（只读） + 剪映粗剪视频（干净画面）</text>
+  <text x="86" y="247" class="small">剪映 SRT 可用就直接用；没有或明显错误时才重做。</text>
+
+  <rect x="680" y="162" width="590" height="94" rx="13" class="note" />
+  <text x="706" y="198" class="step-title">一条 Timeline · 四组 Track</text>
+  <text x="706" y="225" class="body">V1 A-roll · V2 B-roll · V3 动效/截图/图表 · V4 字幕</text>
+  <text x="706" y="247" class="small">A1 人声 · A2 BGM · A3 SFX；字幕固定在最上层。</text>
+
+  <rect x="1300" y="162" width="640" height="94" rx="13" class="warning" />
+  <text x="1326" y="198" class="step-title">Hook 固定规则</text>
+  <text x="1326" y="225" class="body">人脸 + 原声 + 字幕；无 B-roll、动效、BGM、SFX。</text>
+  <text x="1326" y="247" class="small">Hook 在正文原位置再次出现；不得删除或去重。</text>
+
+  <!-- Shared steps -->
+  <text x="60" y="310" class="section">SHARED PREPARATION / STEPS 1–6</text>
+
+  <g>
+    <rect x="570" y="334" width="860" height="72" rx="12" class="shared" />
+    <text x="596" y="364" class="step-num">STEP 1</text>
+    <text x="710" y="364" class="step-title">口播项目设置</text>
+    <text x="710" y="388" class="small">直接记录 talking_head_video；建立 Product A / Product B / Final。</text>
+  </g>
+  <path d="M1000 406V430" class="line" />
+  <g>
+    <rect x="570" y="430" width="860" height="72" rx="12" class="shared" />
+    <text x="596" y="460" class="step-num">STEP 2</text>
+    <text x="710" y="460" class="step-title">素材保全</text>
+    <text x="710" y="484" class="small">原始视频、剪映粗剪、可选 SRT 只读登记并与输出隔离。</text>
+  </g>
+  <path d="M1000 502V526" class="line" />
+  <g>
+    <rect x="570" y="526" width="860" height="72" rx="12" class="shared" />
+    <text x="596" y="556" class="step-num">STEP 3</text>
+    <text x="710" y="556" class="step-title">媒体与字幕状态检查</text>
+    <text x="710" y="580" class="small">规格 + none / soft_stream / hard_burned / unknown；优先干净画面。</text>
+  </g>
+  <path d="M1000 598V622" class="line" />
+  <g>
+    <rect x="570" y="622" width="860" height="72" rx="12" class="shared" />
+    <text x="596" y="652" class="step-num">STEP 4</text>
+    <text x="710" y="652" class="step-title">字幕输入检查 + 按需校准</text>
+    <text x="710" y="676" class="small">优先复用剪映 SRT；只为 Hook、问题句或缺失字幕做局部/全文重识别。</text>
+  </g>
+  <path d="M1000 694V718" class="line" />
+  <g>
+    <rect x="570" y="718" width="860" height="72" rx="12" class="shared" />
+    <text x="596" y="748" class="step-num">STEP 5</text>
+    <text x="710" y="748" class="step-title">Hook 选择 + 共享合同</text>
+    <text x="710" y="772" class="small">先选 Hook；冻结 A/B 共用媒体规格、人声响度和字幕样式。</text>
+  </g>
+  <path d="M1000 790V814" class="line" />
+  <g>
+    <rect x="570" y="814" width="860" height="72" rx="12" class="shared" />
+    <text x="596" y="844" class="step-num">STEP 6</text>
+    <text x="710" y="844" class="step-title">正文 Content Map</text>
+    <text x="710" y="868" class="small">Hook 之后再分析完整正文；标记人脸、B-roll、动效、BGM、SFX 节点。</text>
+  </g>
+
+  <!-- Fork -->
+  <path d="M1000 886V916" class="line" />
+  <g transform="translate(1000 958)">
+    <polygon points="0,-42 112,0 0,42 -112,0" fill="#0f172a" stroke="#fbbf24" stroke-width="2" />
+    <text x="0" y="-3" class="step-title" text-anchor="middle">共享准备完成</text>
+    <text x="0" y="19" class="small" text-anchor="middle">A / B 分叉</text>
+  </g>
+  <path d="M888 958H485V1018" class="line-a" />
+  <path d="M1112 958H1515V1018" class="line-b" />
+
+  <!-- Product A region -->
+  <rect x="60" y="1008" width="850" height="500" rx="18" class="region-a" />
+  <text x="88" y="1044" class="section" fill="#34d399">PRODUCT A / HOOK 小视频</text>
+  <text x="88" y="1069" class="small">独立完成品；不从正文删除原话。</text>
+
+  <g>
+    <rect x="110" y="1096" width="750" height="84" rx="12" class="part-a" />
+    <text x="138" y="1128" class="step-num">STEP 7</text>
+    <text x="252" y="1128" class="step-title">Hook 精确截取</text>
+    <text x="252" y="1154" class="small">quote / aligned / render 三层时间；逐条输出纯人脸片段。</text>
+  </g>
+  <path d="M485 1180V1206" class="line-a" />
+  <g>
+    <rect x="110" y="1206" width="750" height="84" rx="12" class="part-a" />
+    <text x="138" y="1238" class="step-num">STEP 8</text>
+    <text x="252" y="1238" class="step-title">Hook 拼接 + 字幕数据</text>
+    <text x="252" y="1264" class="small">按批准顺序拼接；生成 Part A EDL/SRT，字幕此时不烧录。</text>
+  </g>
+  <path d="M485 1290V1316" class="line-a" />
+  <g>
+    <rect x="110" y="1316" width="750" height="112" rx="12" class="part-a" />
+    <text x="138" y="1348" class="step-num">STEP 9</text>
+    <text x="252" y="1348" class="step-title">Product A 最终字幕 + Render + QA</text>
+    <text x="252" y="1375" class="body">字幕最后烧到最高层；无任何创意效果。</text>
+    <text x="252" y="1402" class="small">输出：part-a-hook/video.mp4 + subtitles.srt + qa.json</text>
+  </g>
+
+  <!-- Product B region -->
+  <rect x="1090" y="1008" width="850" height="500" rx="18" class="region-b" />
+  <text x="1118" y="1044" class="section" fill="#fbbf24">PRODUCT B / 完整正文视频</text>
+  <text x="1118" y="1069" class="small">保留 Hook 原位置；可按节点增强。</text>
+
+  <g>
+    <rect x="1140" y="1090" width="750" height="84" rx="12" class="part-b" />
+    <text x="1168" y="1122" class="step-num">STEP 10</text>
+    <text x="1294" y="1122" class="step-title">剪映粗剪验收 + Picture Lock</text>
+    <text x="1294" y="1148" class="small">通过则 accepted-upstream-manual-cut；不再重复自动粗剪。</text>
+  </g>
+  <path d="M1515 1174V1194" class="line-b" />
+  <g>
+    <rect x="1140" y="1194" width="750" height="84" rx="12" class="part-b" />
+    <text x="1168" y="1226" class="step-num">STEP 11</text>
+    <text x="1294" y="1226" class="step-title">视觉 Spec 审批 + B-roll / 动效</text>
+    <text x="1294" y="1252" class="small">visual-plan + cue_points → spec table → 批准后渲染；字幕未烧录。</text>
+  </g>
+  <path d="M1515 1278V1298" class="line-b" />
+  <g>
+    <rect x="1140" y="1298" width="750" height="84" rx="12" class="part-b" />
+    <text x="1168" y="1330" class="step-num">STEP 12</text>
+    <text x="1294" y="1330" class="step-title">人声 + BGM + SFX</text>
+    <text x="1294" y="1356" class="small">三条独立音轨；按需使用，没有 BGM/SFX 就直接跳过。</text>
+  </g>
+  <path d="M1515 1382V1402" class="line-b" />
+  <g>
+    <rect x="1140" y="1402" width="750" height="84" rx="12" class="part-b" />
+    <text x="1168" y="1434" class="step-num">STEP 13</text>
+    <text x="1294" y="1434" class="step-title">Product B 最终字幕 + Render + QA</text>
+    <text x="1294" y="1460" class="small">字幕最后烧到最高层；不做机械避让，只检查实际可读性。</text>
+  </g>
+
+  <!-- Merge -->
+  <path d="M485 1508V1550H930" class="merge" />
+  <path d="M1515 1508V1550H1070" class="merge" />
+  <g>
+    <rect x="620" y="1572" width="760" height="130" rx="26" class="final" />
+    <text x="650" y="1610" class="step-num">STEP 14</text>
+    <text x="1000" y="1612" class="step-title" text-anchor="middle">Final Concatenate + Final QA + Delivery</text>
+    <text x="1000" y="1644" class="body" text-anchor="middle">part-a-hook/video.mp4 + part-b-body/video.mp4 → final/video.mp4</text>
+    <text x="1000" y="1673" class="small" text-anchor="middle">检查规格、连接处音量/黑帧/损坏；Final SRT 仅按平台需要生成；没有 Step 15。</text>
+  </g>
+  <path d="M930 1550H1000V1572" class="merge" />
+  <path d="M1070 1550H1000" fill="none" stroke="#60a5fa" stroke-width="2.2" />
+
+  <path d="M60 1740H1940" fill="none" stroke="#334155" stroke-width="1" />
+  <circle cx="78" cy="1760" r="6" fill="#22d3ee"/><text x="94" y="1764" class="small">共享准备</text>
+  <circle cx="245" cy="1760" r="6" fill="#34d399"/><text x="261" y="1764" class="small">Product A</text>
+  <circle cx="420" cy="1760" r="6" fill="#fbbf24"/><text x="436" y="1764" class="small">Product B</text>
+  <circle cx="600" cy="1760" r="6" fill="#60a5fa"/><text x="616" y="1764" class="small">Final</text>
+  <text x="1000" y="1764" class="small">只做 QA A / QA B / QA Final；autocut 与 videocut 是 Legacy Reference，不是依赖。</text>
+</svg>

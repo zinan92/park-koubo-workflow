@@ -1,0 +1,374 @@
+# 口播视频 Workflow（Talking-Head Video Editing & Motion Workflow）
+
+状态：v2.3  
+最后更新：2026-09-07  
+适用范围：Park 的口播视频剪辑、Hook、字幕、B-roll、动效、BGM、SFX 与最终交付
+
+## 1. 目标
+
+进入这条 Workflow 就默认输入是一支口播视频，不再判断视频类型，也不设置全片级 `motion_track`。
+
+工作结果固定分为：
+
+```text
+Product A：Hook 小视频
++
+Product B：完整正文视频
+=
+Final Product
+```
+
+Hook 是前置预告。它在开头播放一次，在正文原位置再次出现是有意重复；不得从正文删除。
+
+这套流程让 AI 自主完成判断与执行，只在不可逆或容易产生媒体错误的接口保留约束，不为每个微小动作增加审批、Manifest 或 QA。
+
+## 2. 推荐输入
+
+1. 原始录制视频：只读保留，用于恢复。
+2. 剪映人工粗剪视频：主要工作输入，尽量不要烧录字幕。
+3. 剪映 SRT：如果质量可用就直接使用；没有或明显不可用时才重新转录。
+
+剪映人工粗剪是有效上游，不是临时绕路。进入本 Workflow 后不默认再粗剪一次。
+
+## 3. 一条 Timeline，四组 Track
+
+```text
+Master Timeline
+│
+├── Picture
+│   └── V1：A-roll（Hook 或正文人脸）
+│
+├── Visual
+│   ├── V2：B-roll
+│   └── V3：截图 / 图表 / Screen Demo / Illustration / Remotion / HyperFrames
+│
+├── Caption
+│   └── V4：字幕，最后烧录，永远位于最上层
+│
+└── Audio
+    ├── A1：人声
+    ├── A2：BGM
+    └── A3：SFX
+```
+
+B-roll 和动效在逻辑上属于 Visual，在工程里分开，方便单独关闭和替换。
+
+字幕覆盖 B-roll 或动效不是错误。不要为了避免正常重叠而移动画面；只在字幕确实不可读、被裁切、超出安全区或时间错误时修正。
+
+## 4. 两个 Product 的固定合同
+
+### Product A：Hook
+
+固定为：
+
+```text
+人脸 + 原声 + 字幕
+```
+
+不加 B-roll、截图、动效、BGM 或 SFX。允许必要的切点修正、人声清洁、响度统一和交付编码。
+
+### Product B：正文
+
+正文使用剪映粗剪视频，并完整保留 Hook 的原位置。每一段可以保持人脸，也可以按内容需要加入 B-roll、截图、图表、动效、BGM 或 SFX。
+
+### Final Product
+
+Product A 与 Product B 使用相同的画幅、FPS、编码、色彩空间、音频采样率、响度目标和字幕样式。规格一致时直接 concatenate；不一致时只做一次最终重编码。
+
+## 5. 最低不变量
+
+这些规则保留，不是因为 AI 能力弱，而是因为素材可恢复性和媒体格式本身要求它们存在：
+
+1. 不覆盖原始录制视频和剪映粗剪视频。
+2. Hook 不能多字、少字或截在词中间。
+3. Product A 与 Product B 在合并前必须媒体规格一致。
+4. 字幕在两支 Product 中都最后烧录，并位于最上层。
+5. Final Product 必须能完整播放，连接处不能有损坏流、黑帧或明显音量跳变。
+6. 可复跑的脚本与验收证据必须随成片归档，不留在临时目录。
+
+除此之外，AI 可以根据实际素材选择最短执行路径。某项没有必要时，直接跳过并在 `process-log.md` 写一句原因，不需要为空步骤制造文件。
+
+## 6. 精简目录
+
+```text
+<project>/
+├── project.json                     # 整个项目唯一的共享合同与状态
+├── subtitles/
+│   ├── source.srt                   # 剪映 SRT 或按需生成的替代版本
+│   └── words.json                   # 只有需要逐词校准时才生成
+├── analysis/
+│   ├── hook-candidates.json
+│   └── content-map.md
+├── part-a-hook/
+│   ├── individual/
+│   ├── edit.json                    # Hook 顺序与真实边界
+│   ├── subtitles.srt
+│   ├── video.mp4
+│   └── qa.json
+├── part-b-body/
+│   ├── edit.json                    # 正文 Picture Lock；可只引用剪映粗剪
+│   ├── clean-master.mp4
+│   ├── subtitles.srt
+│   ├── visual-plan.json             # 只有使用 B-roll/动效时才生成
+│   ├── project/                      # 使用视觉工具时归档可编辑工程
+│   ├── audio-plan.json              # 只有使用 BGM/SFX 时才生成
+│   ├── video.mp4
+│   └── qa.json
+├── final/
+│   ├── video.mp4
+│   ├── subtitles.srt                # 平台需要独立字幕时才生成
+│   └── qa.json
+└── process-log.md
+```
+
+除 `project.json` 和三个 `qa.json` 外，其余 JSON 都按实际需要产生，不为了目录整齐创建空文件。
+
+## 7. 十四步流程
+
+### Step 1：口播项目设置
+
+- 记录原始视频、剪映粗剪、可选 SRT、画幅、平台和输出目录。
+- 直接设置 `content_type: talking_head_video`。
+- 建立 Product A、Product B 和 Final 三个目标。
+
+产物：`project.json`、`process-log.md`。
+
+### Step 2：素材保全
+
+- 确认原始视频和剪映粗剪都存在。
+- 不覆盖、移动或改名输入素材。
+- 输出写入独立项目目录。
+
+本步骤不再强制为每个输入生成单独 JSON。
+
+### Step 3：媒体与字幕状态检查
+
+- 检查宽高、FPS、时长、编码、色彩空间和音频规格。
+- 判断画面是否意外烧录字幕。
+- 优先使用没有烧录字幕的剪映粗剪视频。
+
+没有字幕流不能单独证明没有硬字幕；需要抽查代表画面。检查结果直接写入 `project.json`。
+
+### Step 4：字幕输入检查与按需校准
+
+默认路径：
+
+```text
+剪映 SRT 与粗剪视频匹配且质量可用
+→ 直接使用
+→ 不重新转录全文
+```
+
+只在以下情况重新转录或生成逐词时间：
+
+- 没有 SRT；
+- SRT 与粗剪版本不匹配；
+- 文字错误明显；
+- Hook 或某句的首尾时间不可靠；
+- 用户指出字幕提前消失、缺字或断句错误。
+
+字幕文字与时间可以来自不同来源：`text_source` 负责“写什么”，`timing_source` 负责“何时出现”。两源相同且质量可用时可直接使用；两源不同时必须执行对齐，把文字映射到时间源上，再进入 Hook 切片和字幕制作。允许只校准 Hook 和问题句，不要求全片生成 `words.json`。最终得到一份可用于后续映射的 `subtitles/source.srt`；`words.json` 是可选产物。
+
+### Step 5：Hook 选择与共享合同
+
+- AI 从字幕和音频中提出 Hook 候选。
+- 候选保留原话、来源时间、推荐理由和批准状态即可，不要求复杂评分字段。
+- 用户批准最终句子和顺序。
+- 在 `project.json` 中冻结 Product A/B 共用的媒体规格、响度目标和字幕样式。
+- Hook 放到开头后，正文原位置保持不变。
+
+产物：`analysis/hook-candidates.json`、更新后的 `project.json`。
+
+### Step 6：正文 Content Map
+
+- 阅读完整正文，标记章节、观点、案例和结论。
+- 标记可能使用 B-roll、截图、图表、动效、BGM 或 SFX 的位置。
+- 没有必要的段落保持纯人脸。
+
+产物：`analysis/content-map.md`。不要求同时生成另一份同内容 JSON。
+
+### Step 7：Hook 精确截取
+
+- 对批准的 Hook 逐条听首尾。
+- 时间不可靠时，只对相关窗口做逐词校准。
+- 分别导出无字幕、无 B-roll、无动效的独立 Hook 片段。
+- 正文源文件不修改，Hook 原位置不删除。
+
+产物：`part-a-hook/individual/*.mp4`、`part-a-hook/edit.json`。
+
+### Step 8：Hook 拼接与字幕数据
+
+- 按批准顺序拼接 Hook。
+- 根据实际片段时间生成 Product A 字幕。
+- 字幕仍保持独立，不烧录。
+- 不添加任何视觉或声音效果。
+
+产物：Hook Base、`part-a-hook/subtitles.srt`。
+
+### Step 9：Product A 成品与 QA
+
+- 做必要的人声清洁和响度统一。
+- 最后烧录字幕。
+- 输出 `part-a-hook/video.mp4`。
+- 执行 Product A 唯一一次正式 QA：句子完整、顺序正确、字幕正确、规格正确、可完整播放。
+
+产物：`part-a-hook/video.mp4`、`part-a-hook/qa.json`。
+
+### Step 10：正文粗剪验收与 Picture Lock
+
+有剪映人工粗剪时：
+
+```text
+快速检查内容、切点、音画和完整播放
+→ 通过后直接作为正文 Clean Master
+→ 不再运行自动粗剪
+```
+
+只有没有合格粗剪时，AI 才自行清理明显口误、停顿和无效内容。不得因为某段已出现在 Hook 中而从正文删除。
+
+明确的拍摄或制作指令可以在 Picture Lock 时删除，但必须先获用户批准，并在 `edit.json` 记录原时间、删除文本和原因；此例外不得用于删除正文。
+
+产物：`part-b-body/clean-master.mp4`、`part-b-body/edit.json`。
+
+### Step 11：正文视觉轨道
+
+逐段决定：
+
+```text
+保持人脸
+加入 B-roll
+加入截图或屏幕录制
+加入图表或 Illustration
+加入 Remotion / HyperFrames 动效
+```
+
+只有实际使用视觉增强时才生成 `part-b-body/visual-plan.json`。它是可执行的镜头合同：每个镜头至少写明时间范围、用途、素材来源，以及 `cue_points` 中的 enter、reveal、hold、exit；不要求固定视觉间隔，也不设置“每 20 秒一个视觉点”。
+
+B-roll 优先使用本人真实素材；外部素材必须记录来源、关闭原声，并且不能用来证明素材本身无法证明的事实。
+
+先由 `visual-plan.json` 自动生成可读的 spec table；只有用户批准后才允许进入正式渲染并继续 Step 13。此阶段只做工作检查，不生成独立正式 QA 文件。
+
+### Step 12：正文声音轨道
+
+- A1：人声清洁与响度。
+- A2：按需加入 BGM。
+- A3：按需加入 SFX。
+
+没有 BGM/SFX 时直接跳过；不为空轨道生成 `bgm-map.json` 或 `sfx-map.json`。实际使用时统一写入一个 `part-b-body/audio-plan.json`。
+
+### Step 13：Product B 成品与 QA
+
+- 根据 Picture Lock 生成或调整 Product B 字幕。
+- 最后把字幕烧到最高层。
+- 字幕覆盖 B-roll/动效不是错误；只检查实际可读性、裁切和时间。
+- 输出 `part-b-body/video.mp4`。
+- 执行 Product B 唯一一次正式 QA：正文完整、画面正常、人声清楚、字幕正确、媒体可完整播放。
+
+产物：`part-b-body/video.mp4`、`part-b-body/subtitles.srt`、`part-b-body/qa.json`。
+
+### Step 14：Final Concatenate、最终 QA 与交付
+
+- 确认 Product A 与 Product B 媒体规格一致。
+- 一致时直接 concatenate；不一致时只做一次最终重编码。
+- 检查连接处的音量、黑帧、时间跳变和损坏流。
+- 完整播放 Final Product。
+- 输出 `final/video.mp4` 和 `final/qa.json`。
+
+只有发布平台明确要求独立字幕时，才把 Product A 与偏移后的 Product B 字幕合并为 `final/subtitles.srt`。字幕已经烧录且平台不需要 sidecar 时，不生成 Final SRT。
+
+Step 14 完成即交付完成，没有 Step 15。
+
+归档（与导出同等重要）：
+
+把下面三类东西放进成片同一个目录，不留在 `/tmp`、会话临时目录或某个 agent 的工作区：
+
+```text
+scripts/     能复跑出本次结果的脚本（转录对齐、断句、重锚、字幕生成…）
+captions/    最终字幕轨（以及它们的中间稿）
+qa/          验收证据（抽帧图、对照图、探测截图）
+project/     可编辑视觉工程
+```
+
+视觉真值链固定为：已批准的 spec snapshot 不回写；`visual-plan.json` 是当前可执行真值；批准后的修改记入 `changes.md`；给人阅读的 spec table 始终从 `visual-plan.json` 自动生成。
+
+完成标准补充：
+
+- 目录里有 `README.md`，逐项说明每个文件是什么。
+- 关键脚本可以在这台机器上重新跑出同样的产物。
+- 规格表的时间码与实际成片一致；过期的旧表要么更新，要么标注作废。
+
+## 8. 三个 QA Gate
+
+整条 Workflow 只保留三次正式 QA：
+
+### QA A：Product A
+
+- Hook 顺序与批准一致。
+- 不多字、不少字、不截半句。
+- 只有人脸、原声和字幕。
+- 字幕和媒体规格正确。
+- 可完整播放。
+
+### QA B：Product B
+
+- 正文完整，包括 Hook 原位置。
+- 人工粗剪没有明显断词或异常跳切。
+- 实际使用的 B-roll、动效、BGM 和 SFX 正常。
+- 每个视觉镜头抽查 enter、reveal、hold、exit 四个关键帧。
+- 字幕最后烧录且可读。
+- 人声清楚，视频可完整播放。
+
+### QA Final
+
+- A/B 媒体规格一致，或最终只重编码一次。
+- 连接处无黑帧、损坏流和明显音量跳变。
+- Final Product 可从头到尾播放。
+- 独立 Final SRT 只有在平台需要时才检查。
+
+各步骤可以做必要的即时检查，但不再为每一步建立正式 QA 报告。
+
+## 9. 已知会重犯的错误
+
+不是流程步骤，是掉过的坑。执行时不用读，出问题时回来查。
+
+- **中间产物留在临时目录** —— 2026-09-05 实测：成片交付后，
+  字幕对齐脚本、修正后的字幕轨、验收证据全部只存在于会话临时目录，
+  差一步就随会话消失。**最不该重做的东西最容易丢。**
+- **没抽帧就断定有／没有硬字幕** —— spec 说有，实测没有（2026-09-05）。
+- **拿字幕块时间当词时间去切** —— 物证 `autocut-srt-block-experiment-overcut.mp4`。
+- **两份 ASR 打架时不做裁决** —— 同一段音频，剪映说「10 行 / 20 个测试」，
+  whisper-small 说「100 / 200」。裁决依据要写下来（正确率对照 + 置信度），不能拍脑袋。
+- **规格表和成片脱节** —— 粗剪一改，钉在旧母版上的表全部作废；
+  两份表并存时必须标明哪份是真值。
+- **`\b` 词边界在中文旁不成立** —— 中文也是 word 字符，
+  `Cloud→Claude` 这类替换会静默失效。先加中英空格，再做替换。
+- **JPEG 中间帧产生 `yuvj420p`** —— 平台重编码时可能整体偏移对比度。
+- **Hook 只有判决没有对象** —— 观众代入不了。
+- **生成了文件就写成完成。**
+
+## 10. 工具策略
+
+[`zinan92/videocut`](https://github.com/zinan92/videocut) 和 [`zinan92/autocut`](https://github.com/zinan92/autocut) 是历史实现与 Legacy Reference，不是本 Workflow 的运行依赖。
+
+- 不围绕它们设计目录、接口或步骤。
+- 不为了复用旧代码引入旧的 handholding、默认节奏和 fallback。
+- 某个简单实现有参考价值时，可以阅读后直接重写当前所需版本。
+- `video-shotcraft` 可作为 Step 11 的镜头设计与实现工具库，但不把具体卡片清单固化进 Workflow。
+- 多镜头时优先把每个镜头做成独立透明视觉层，便于单独修改和重渲；这是实现策略，不是强制步骤。
+- FFmpeg、Remotion、HyperFrames 或其他工具由 AI 根据当前任务直接调用。
+
+## 11. 最小过程日志
+
+`process-log.md` 只记录关键决定，不要求每个微动作都写一条：
+
+```markdown
+## Step N：阶段名称
+
+- status: pending | partial | blocked | pass
+- decision:
+- outputs:
+- problem:              # 没有可省略
+- next:
+```
+
+日志服务于继续工作和追溯，不服务于制造流程感。
