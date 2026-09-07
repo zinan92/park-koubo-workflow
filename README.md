@@ -27,9 +27,9 @@ fail 等待 Hook / Visual Spec / Final 批准 → 展示准确产物并停在当
 fail 缺少必需素材或依赖                     → 标记 blocked，并说明唯一下一动作
 ```
 
-![Ask Park Video：14 步路由、三个人工审批门与 Video ShotCraft 视觉导演](assets/ask-park-video-flow.gif)
+![Ask Park Video：五个阶段与三个人工审批门](assets/ask-park-video-simple-flow.svg)
 
-<sub>动态流程图展示真实的路由合同；[查看静态 PNG](assets/ask-park-video-flow.png) · [编辑 Excalidraw 源文件](assets/ask-park-video-flow.excalidraw)</sub>
+<sub>一条主线：输入 → 五个 Stage → Final Video；[查看 PNG](assets/ask-park-video-simple-flow.png)</sub>
 
 ---
 
@@ -187,8 +187,7 @@ park-koubo-workflow/
 ├── examples/router-dry-run.md       # 可检查的最小路由示例
 ├── presets/                         # 媒体、声音、字幕样式与排版真值
 ├── scripts/validate_presets.py      # 检查四个 preset 的交叉一致性
-├── scripts/render-showcase.sh       # 从 spec 重建 PNG/GIF/Excalidraw
-├── assets/ask-park-video-flow.*     # GIF、PNG、Excalidraw 与生成 spec
+├── assets/ask-park-video-simple-flow.* # README 静态流程图
 └── diagram/park-koubo-workflow.*    # 完整静态流程图
 ```
 
@@ -201,13 +200,7 @@ park-koubo-workflow/
 ```bash
 python3 /path/to/skill-creator/scripts/quick_validate.py .
 python3 scripts/validate_presets.py
-jq empty tests/router-cases.json assets/ask-park-video-flow.spec.json
-```
-
-重建 README 动态图：
-
-```bash
-scripts/render-showcase.sh /path/to/lanshu-animated-architecture-diagram
+jq empty tests/router-cases.json
 ```
 
 最关键的验收场景：当 Steps 1–10 已有通过证据、但没有 `visual-plan.json` 时，Agent 必须进入 Step 11，调用 Video ShotCraft 生成规格，并停在 H2；不得重做前序步骤，也不得提前渲染。
