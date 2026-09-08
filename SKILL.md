@@ -34,6 +34,14 @@ On every invocation:
 
 Never restart a passed step merely because a new Agent session began. Never skip a failed prerequisite to reach a later step.
 
+## Executable handoff guards
+
+Read [references/enforcement.md](references/enforcement.md) before prefill, Hook extraction, visual planning/rendering or delivery. Use `scripts/workflow_guard.py` at those handoffs; production commands go through its `run` entrypoint. Exit 2 means stop that action, fix the evidence and rerun. There is no agent-authorized force/pass override. These are targeted evidence checks, not a sandbox or proof that all fourteen steps were executed.
+
+When Park asks for prefill, read [prompts/hook-prefill.md](prompts/hook-prefill.md) and use Video ShotCraft for visual suggestions **before filling the worktable**. Preserve add/edit/delete/order controls and existing user edits. Record candidate rationale, source prompt/card/demo hashes and input timeline. Prefill is a proposal, never H1/H2 approval. Do not postpone ShotCraft until after the prefill is approved.
+
+Run independent spec review with `scripts/review_visual_spec.py <project> --provider claude` (or `codex`) before presenting H2. Fix findings and repeat; do not replace a failed/unavailable independent reviewer with self-review. The automated CLI runner reviews text specs only; final rendered QA requires an independent reviewer that actually inspects the media and frames. Keep these two claims separate.
+
 ## Five stages
 
 | Stage | Canonical steps | Completion boundary |
@@ -72,7 +80,7 @@ A gate becomes current only when its review artifact exists. Until then, continu
 
 ### H1 — Hook Approval at Step 5
 
-Park selects Hooks himself in the worktable; do not nominate over him. Read `hooks` from `analysis/worktable.json` in `order`, verify each quote against the transcript, convert each `anchor` into candidate cut points, and flag anything word-incomplete or judgment-without-subject. Resolve every `anchor_status: stale`/`unmatched` entry with Park first, and read `match: "fuzzy"` quotes back for confirmation. Derive `analysis/hook-candidates.json` from the worktable rather than authoring a second truth. Fall back to AI nomination only when Park left the worktable empty, noting why in `process-log.md`. Wait for approval of sentences and order before Step 7 extraction.
+Park selects Hooks himself unless he requests AI suggestions/prefill; do not overwrite his choices. Read `hooks` from `analysis/worktable.json` in `order`, verify each quote against the transcript, convert each `anchor` into candidate cut points, and flag anything word-incomplete or judgment-without-subject. Resolve every `anchor_status: stale`/`unmatched` entry with Park first, and read `match: "fuzzy"` quotes back for confirmation. Derive `analysis/hook-candidates.json` from the worktable rather than authoring a second truth. AI nomination uses the versioned Hook prefill prompt when explicitly requested or when the worktable is empty; log the reason. Wait for approval of sentences and order before Step 7 extraction.
 
 Freeze the Product A/B shared media, audio, caption-style, and caption-layout preset IDs at this gate. This approves the Hook decision; it does not invite a new caption design unless the user explicitly requests an override.
 
@@ -80,7 +88,7 @@ Freeze the Product A/B shared media, audio, caption-style, and caption-layout pr
 
 Park's `visual_notes` are required input, not inspiration. Give every note a `disposition` of 采纳/调整/拒绝 in `visual-plan.json`, with a `disposition_reason` for the latter two, and show note number, Park's own wording, and disposition as rows in the spec table so H2 reveals exactly what was overridden. Decide freely wherever Park left no note.
 
-After Picture Lock, generate `visual-plan.json` and a readable spec table. Show the table, planned coverage, source/provenance, and any exceptions. Wait for approval before rendering any production visual layer. Freeze the approved snapshot; record later changes in `changes.md`.
+After Picture Lock, finalize `visual-plan.json` and generate its readable spec table. Independent spec QA and `present-spec` must pass before presenting H2. Show the table, planned coverage, source/provenance, and any exceptions. Wait for approval before rendering any production visual layer. Bind approval to the exact input digest; edits invalidate it and the independent review. Freeze the approved snapshot; record later changes in `changes.md`.
 
 ### H3 — Final Approval after Step 14
 
@@ -90,7 +98,7 @@ Normal routing does not request approval between these gates. A missing credenti
 
 ## Step 11: Video ShotCraft adapter
 
-Enter this adapter only when Step 10 Picture Lock has passed. Do not use it on Product A Hook.
+Use this adapter early for requested visual prefill; those suggestions remain provisional until Step 10 Picture Lock and renewed timeline checks. Formal H2 and production rendering remain in Step 11. Do not use it to add visuals to Product A Hook.
 
 Use `video-shotcraft` as the visual director for the complete Product B visual track. It chooses among:
 
@@ -114,6 +122,8 @@ Make `part-b-body/visual-plan.json` the executable visual truth. For each shot i
 - treatment plus asset/source/provenance;
 - `cue_points.enter`, `reveal`, `hold`, and `exit`;
 - implementation recipe/tool reference;
+- exact Gallery card/style, card and demo source hashes, preserved element-level motion and adaptations (or justified custom/real-footage decision);
+- quantitative classification, data provenance and testable scale/label/geometry contract;
 - approval and change status.
 
 Generate the human-readable spec table from `visual-plan.json`; never maintain it as a second independent truth.
@@ -142,6 +152,8 @@ For every rendered shot, inspect frames at enter, reveal, hold, and exit. Then v
 - transitions do not produce black frames or continuity breaks;
 - every rendered visual was approved or appears in `changes.md`;
 - measured coverage and exceptions match the approved spec.
+
+For quantitative graphics verify actual rendered geometry, not just the data file: shared axis, consistent baseline, labels driven by the same values, and every revealed data stage in the right spoken order. Require independent rendered review with frame evidence. A technical decode pass is not semantic or motion QA.
 
 If `video-shotcraft` is unavailable, pause at Step 11 with the installation requirement. Do not silently substitute a different visual system.
 

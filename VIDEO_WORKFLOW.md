@@ -1,6 +1,6 @@
 # 口播视频 Workflow（Talking-Head Video Editing & Motion Workflow）
 
-状态：v2.6
+状态：v2.7
 最后更新：2026-09-08  
 适用范围：Park 的口播视频剪辑、Hook、字幕、B-roll、动效、BGM、SFX 与最终交付
 
@@ -87,7 +87,7 @@ Product A 与 Product B 使用相同的画幅、FPS、编码、色彩空间、�
 6. 可复跑的脚本与验收证据必须随成片归档，不留在临时目录。
 7. 每个项目必须记录版本化的媒体、声音、字幕样式和字幕排版 preset；Agent 不临场重新设计默认值。
 
-除此之外，AI 可以根据实际素材选择最短执行路径。某项没有必要时，直接跳过并在 `process-log.md` 写一句原因，不需要为空步骤制造文件。
+除此之外，AI 可以根据实际素材选择最短执行路径。可选素材/音轨没有必要时可跳过并记录原因；这不允许跳过 ShotCraft 视觉设计、证据关卡、独立审核或用户审批。执行接口见 [enforcement.md](references/enforcement.md)。
 
 ## 6. 精简目录
 
@@ -229,12 +229,12 @@ Park 点「导出 worktable.json」后文件会落在浏览器下载目录。Age
 
 ### Step 5：Hook 选择与共享合同
 
-- Hook 由 Park 在 `analysis/worktable.html` 里自己选，不由 AI 提名。读 `analysis/worktable.json` 的 `hooks`，按 `order` 排序。
-- AI 只做三件事：核对每条 Hook 的原话与转写一致；把 `anchor` 的近似时间换算成候选切点；指出明显问题（截半句、缺主语、只有判决没有对象）。
+- 默认由 Park 在 `analysis/worktable.html` 里自己选；明确要求 prefill 时，AI 先读 `prompts/hook-prefill.md` 提供可编辑候选，运行 `hook-prefill` 检查。最终仍读 Park 批准的 `hooks`，按 `order` 排序。
+- 选定之后 AI 核对原话与转写一致、把近似 anchor 换成候选搜索窗口、指出截半句/缺主语/只有判决没有对象等问题。
 - `anchor_status` 为 `stale` 或 `unmatched` 的条目必须先跟 Park 确认再往下走；`match: "fuzzy"` 的条目要把匹配到的原话回读给 Park 确认。
 - `analysis/hook-candidates.json` 由 `worktable.json` 派生，不手写第二份真值。
 - Park 批准最终句子和顺序。
-- 工作台空着（Park 没填）时才退回 AI 提名，并在 `process-log.md` 写明原因。
+- 工作台空着或 Park 明确要求时允许 AI 提名，并在 `process-log.md` 写明原因；不把 prefill 当批准，不覆盖已有人工选择。
 - 在 `project.json` 中冻结 Product A/B 共用的 media、audio、caption-style 和 caption-layout preset ID。
 - Hook 放到开头后，正文原位置保持不变。
 
@@ -249,6 +249,8 @@ Park 点「导出 worktable.json」后文件会落在浏览器下载目录。Age
 产物：`analysis/content-map.md`。不要求同时生成另一份同内容 JSON。
 
 ### Step 7：Hook 精确截取
+
+先通过 `workflow_guard.py check --gate hook-cut`，正式切片命令经 `run --gate hook-cut` 执行。原始时间与粗剪时间必须明确区分，同一时间不重复映射；缺真实媒体哈希、词级/听音边界证据或 H1 时拒绝执行。
 
 - 批准的 Hook 来自 `analysis/worktable.json` 的 `hooks`（`hook-candidates.json` 是它的派生视图，不是第二份真值）。
 - `anchor.start_hint` / `end_hint` 只是**起始搜索窗口**，不是切点。它由字幕块插值而来，必须逐条听过首尾后重新定位。
@@ -295,7 +297,7 @@ Park 点「导出 worktable.json」后文件会落在浏览器下载目录。Age
 
 ### Step 11：正文视觉轨道
 
-`video-shotcraft` 在 Picture Lock 后作为 Product B 的视觉总导演，逐段决定：
+`video-shotcraft` 在 Picture Lock 后作为 Product B 的视觉总导演。用户要求工作台 visual prefill 时提前调用其设计能力，记录卡片与准确 demo 源码依据；此时是建议，不是正式制作放行。Picture Lock 后重新核对时间线并完成下列决定：
 
 ```text
 保持人脸
@@ -305,7 +307,7 @@ Park 点「导出 worktable.json」后文件会落在浏览器下载目录。Age
 加入 Remotion / HyperFrames 动效
 ```
 
-只有实际使用视觉增强时才生成 `part-b-body/visual-plan.json`。它是可执行的镜头合同：每个镜头至少写明时间范围、用途、素材来源，以及 `cue_points` 中的 enter、reveal、hold、exit；不要求固定视觉间隔，也不设置“每 20 秒一个视觉点”。
+生成 `part-b-body/visual-plan.json` 作为可执行的镜头合同；选择纯 A-roll 时也以空 shots 和逐条 note 回应记录决定。每个镜头写明时间范围、用途、素材来源、元素运动、准确 recipe/demo 与适配理由、数值语义合同，以及 enter、reveal、hold、exit；不要求固定视觉间隔，也不设置“每 20 秒一个视觉点”。机器字段见 `references/enforcement.md`。
 
 视觉覆盖率按 Product B 中 B-roll、截图、图表、Illustration、透明动效和全屏动画区间的时间并集计算，重叠只计一次；Hook、人脸原画面、字幕、BGM 和 SFX 不计入。默认目标为 30%–40%，但不得为了达标添加无意义画面；超出范围时在 spec table 写明原因并随本阶段一起批准。
 
@@ -320,7 +322,7 @@ B-roll 优先使用本人真实素材；外部素材必须记录来源、关闭�
 
 Park 的 note 覆盖不到的段落，`video-shotcraft` 照常自主决定。
 
-先由 `visual-plan.json` 自动生成可读的 spec table；只有用户批准后才允许进入正式渲染并继续 Step 13。此阶段只做工作检查，不生成独立正式 QA 文件。
+先通过 `visual-spec` 结构与数值检查，再由独立 Claude Code / Codex CLI 审核规格，保存 `qa/visual-spec.json`。修复全部问题后由当前 JSON 自动生成可读 spec table，`present-spec` 通过后交 H2。用户批准准确快照后，经 `run --gate visual-render` 才允许正式渲染。CLI 缺失、超时、无法验证或失败都不得降级为自评通过。独立规格 QA 是自动质量关，不增加第四个人工审批门。
 
 ### Step 12：正文声音轨道
 
@@ -373,7 +375,7 @@ project/     可编辑视觉工程
 
 ## 8. 三个 QA Gate
 
-整条 Workflow 只保留三次正式 QA：
+整条 Workflow 保留三个成品 QA，另在 H2 前加入独立规格 QA。QA B/Final 的视觉检查必须包含独立媒体审核，不能把规格审核当成看过成片：
 
 ### QA A：Product A
 
@@ -389,6 +391,7 @@ project/     可编辑视觉工程
 - 人工粗剪没有明显断词或异常跳切。
 - 实际使用的 B-roll、动效、BGM 和 SFX 正常。
 - 每个视觉镜头抽查 enter、reveal、hold、exit 四个关键帧。
+- 独立审核者对照准确 demo、批准规格、参考样片及实际帧；定量图表逐阶段测量共同比例尺与标签。80 的柱形不能比 95 更长；实际图形度量与输入绑定到 `qa/render.json`。
 - 字幕最后烧录且可读，Product A/B 的 caption preset ID 相同。
 - 人声清楚，视频可完整播放。
 
@@ -400,6 +403,8 @@ project/     可编辑视觉工程
 - 独立 Final SRT 只有在平台需要时才检查。
 
 各步骤可以做必要的即时检查，但不再为每一步建立正式 QA 报告。
+
+交付前经 `workflow_guard.py check --gate delivery` 验证证据链。文件哈希发生变化后重做受影响审核；`pass` 标签、空报告、旧批准均不能放行。
 
 ## 9. 已知会重犯的错误
 

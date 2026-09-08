@@ -55,7 +55,19 @@ Ask Park Video 把这些决定写成一个可恢复的路由器。它根据已�
 | D. Sound & Product B | 12–13 | 声音、最高层字幕与 QA B 完成 |
 | E. Final Delivery | 14 | A/B 合并，QA Final 与最终验收完成 |
 
-Stage A 的交付物是 `analysis/worktable.html`——一张 Park 用来选 Hook、标视觉的工作台。左边是修好标点和错别字的转写，右上是最多 5 个 Hook 格子，右下是用大白话写的视觉标注（标注号 ①②③ 显示在原文对应句尾）。它的导出 `analysis/worktable.json` 是 Step 5 和 Step 11 的输入：Hook 由 Park 自己选而不由 AI 提名，`visual_notes` 里每一条都必须被 `video-shotcraft` 逐条回应（采纳／调整／拒绝），不能静默忽略。
+Stage A 的交付物是 `analysis/worktable.html`——一张 Park 用来选 Hook、标视觉的工作台。左边是修好标点和错别字的转写，右上是最多 5 个最终 Hook 格子，右下是可编辑视觉标注。用户要求 prefill 时，AI 必须按 [Hook prompt](prompts/hook-prefill.md) 和 Video ShotCraft 先给建议，再由 Park 增删改、批准；候选数量不受最终槽数限制。导出 `analysis/worktable.json` 是 Step 5 和 Step 11 的输入；每条 `visual_notes` 必须被逐条回应，不能静默忽略。
+
+### 可执行关卡与独立审核
+
+[证据关卡使用说明](references/enforcement.md) 定义了 prefill、Hook 切片、视觉规格、正式渲染与交付的检查入口。缺 ShotCraft card/demo 依据、审核失败或审批哈希过期时返回非零，受检命令不会启动。
+
+```bash
+python3 scripts/workflow_guard.py check /path/to/project --gate visual-spec
+python3 scripts/review_visual_spec.py /path/to/project --provider claude
+python3 scripts/workflow_guard.py check /path/to/project --gate present-spec
+```
+
+规格先经独立 CLI 审核再交 H2；成片仍需独立看图/看视频审核。需要本机已安装并登录相应 CLI，也支持 `--provider codex`。这是一条受检生产入口，不是对任意 shell/文件操作的全局沙箱；不会自动修改 Codex/Claude 全局 hooks。
 
 ```bash
 python3 scripts/build_worktable.py map --srt subtitles/source.srt \
@@ -214,6 +226,7 @@ park-koubo-workflow/
 ```bash
 python3 /path/to/skill-creator/scripts/quick_validate.py .
 python3 scripts/validate_presets.py
+python3 -m unittest discover -s tests -p 'test_*.py'
 jq empty tests/router-cases.json
 ```
 
