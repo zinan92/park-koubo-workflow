@@ -578,6 +578,7 @@ function stats(){
 function payload(){
   return {
     schema:'park-video-worktable/v1',
+    hook_origin:DATA.hook_origin || 'manual',
     project:DATA.project, source_srt:DATA.source_srt,
     generated_at:DATA.generated_at, exported_at:new Date().toISOString(),
     timing_note:'所有 start_hint / end_hint 由 SRT 字幕块线性插值得到，是近似值，不得直接用于 Step 7 精确切割。',

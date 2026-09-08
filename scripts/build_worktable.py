@@ -206,6 +206,7 @@ def cmd_html(args):
         "source_srt": doc.get("source_srt"),
         "generated_at": doc.get("generated_at"),
         "transcript": doc["transcript"],
+        "hook_origin": args.hook_origin,
     }, ensure_ascii=False)
     payload = payload.replace("</", "<\\/")  # never close the script tag early
     out = Path(args.out)
@@ -230,6 +231,8 @@ def main():
     h.add_argument("sentences")
     h.add_argument("-o", "--out", required=True)
     h.add_argument("--project")
+    h.add_argument("--hook-origin", choices=("manual", "ai-prefill"), default="manual",
+                   help="Preserve nomination provenance in worktable exports")
     h.add_argument("--template")
     h.set_defaults(func=cmd_html)
 
