@@ -49,11 +49,22 @@ Ask Park Video 把这些决定写成一个可恢复的路由器。它根据已�
 
 | Stage | Steps | 做完的标志 |
 | --- | ---: | --- |
-| A. Preparation | 1–4 | 素材保全，粗剪与可靠字幕时间就绪 |
+| A. Preparation | 1–4 | 素材保全，字幕时间可靠，`analysis/worktable.html` 已交给 Park |
 | B. Hook & Product A | 5–9 | Hook 经批准并独立成片，QA A 通过 |
 | C. Body & Visual Direction | 10–11 | 正文 Picture Lock，视觉规格批准并渲染 |
 | D. Sound & Product B | 12–13 | 声音、最高层字幕与 QA B 完成 |
 | E. Final Delivery | 14 | A/B 合并，QA Final 与最终验收完成 |
+
+Stage A 的交付物是 `analysis/worktable.html`——一张 Park 用来选 Hook、标视觉的工作台。左边是修好标点和错别字的转写，右上是最多 5 个 Hook 格子，右下是用大白话写的视觉标注（标注号 ①②③ 显示在原文对应句尾）。它的导出 `analysis/worktable.json` 是 Step 5 和 Step 11 的输入：Hook 由 Park 自己选而不由 AI 提名，`visual_notes` 里每一条都必须被 `video-shotcraft` 逐条回应（采纳／调整／拒绝），不能静默忽略。
+
+```bash
+python3 scripts/build_worktable.py map --srt subtitles/source.srt \
+  --text subtitles/transcript.corrected.txt -o subtitles/transcript.sentences.json
+python3 scripts/build_worktable.py html subtitles/transcript.sentences.json \
+  -o analysis/worktable.html
+```
+
+校对只许补标点和改错别字。`map` 自带内容守卫：非标点字数差超出 ±max(3, 0.5%) 或相似度低于 0.95 就拒绝输出，因为那意味着校对编造了 Park 没说过的话，而这些话会顺着 Hook 原话一路传到成片。工作台里的时间是 `start_hint`／`end_hint`，由字幕块插值而来，只用于定位，Step 7 必须重新精确定位。
 
 每次调用时，Router 会：
 
@@ -185,8 +196,11 @@ park-koubo-workflow/
 ├── VIDEO_WORKFLOW.md                # 14 步详细流程的 canonical truth
 ├── tests/router-cases.json          # Resume 与 Gate 路由用例
 ├── examples/router-dry-run.md       # 可检查的最小路由示例
+├── examples/worktable-demo/         # 工作台可跑通样例
 ├── presets/                         # 媒体、声音、字幕样式与排版真值
 ├── scripts/validate_presets.py      # 检查四个 preset 的交叉一致性
+├── scripts/build_worktable.py       # SRT + 校对稿 → Step 4 工作台
+├── assets/worktable/                # 工作台 HTML 模板
 ├── assets/ask-park-video-simple-flow.* # README 静态流程图
 └── diagram/park-koubo-workflow.*    # 完整静态流程图
 ```

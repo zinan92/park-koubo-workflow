@@ -6,8 +6,20 @@
     "expected_current_gate": null
   },
   {
+    "name": "worktable-missing",
+    "given": "Subtitles are aligned but analysis/worktable.html has not been generated",
+    "expected_next_step": 4,
+    "expected_current_gate": null
+  },
+  {
+    "name": "worktable-not-returned",
+    "given": "analysis/worktable.html exists but Park has not exported analysis/worktable.json back into the project",
+    "expected_next_step": 4,
+    "expected_current_gate": null
+  },
+  {
     "name": "hook-selection",
-    "given": "Steps 1-4 pass and Hook candidates exist without approval",
+    "given": "Steps 1-4 pass and analysis/worktable.json carries Park's Hook picks without approval",
     "expected_next_step": 5,
     "expected_current_gate": "H1"
   },

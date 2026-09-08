@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>口播工作台 · Transcript Worktable</title>
+<style>
+:root{
+  --bg:#f6f6f4; --panel:#ffffff; --ink:#1b1b19; --ink-2:#5c5b56; --ink-3:#8f8d86;
+  --line:#e2e0da; --line-2:#cfccc3; --accent:#b0512d; --accent-soft:#fdeee7;
+  --hook:#2f6b4f; --hook-soft:#e6f2ea; --mark:#8a5a12; --mark-soft:#fbf0da;
+  --radius:8px; --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;}
+
+/* ---------- shell ---------- */
+#app{display:grid;grid-template-rows:auto 1fr;height:100vh}
+header{display:flex;align-items:center;gap:14px;padding:10px 16px;background:var(--panel);
+  border-bottom:1px solid var(--line);flex-wrap:wrap}
+header h1{font-size:15px;margin:0;font-weight:650;letter-spacing:.2px}
+header .proj{font:12px/1 var(--mono);color:var(--ink-3);padding:4px 8px;background:var(--bg);
+  border:1px solid var(--line);border-radius:5px}
+header .spacer{flex:1}
+.stat{font-size:12px;color:var(--ink-2)}
+.stat b{color:var(--ink);font-variant-numeric:tabular-nums}
+button{font:inherit;font-size:13px;padding:5px 11px;border:1px solid var(--line-2);
+  background:var(--panel);color:var(--ink);border-radius:6px;cursor:pointer}
+button:hover{background:#f0efe9}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover{filter:brightness(1.08)}
+button.ghost{border-color:transparent;background:transparent;color:var(--ink-3);padding:4px 7px}
+button.ghost:hover{background:#efeee8;color:var(--ink)}
+
+main{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:0;min-height:0}
+.pane{min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.pane + .pane{border-left:1px solid var(--line)}
+.pane-head{display:flex;align-items:center;gap:10px;padding:9px 14px;background:var(--panel);
+  border-bottom:1px solid var(--line)}
+.pane-head h2{margin:0;font-size:12px;font-weight:650;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.pane-head .hint{font-size:11.5px;color:var(--ink-3)}
+.pane-body{flex:1;min-height:0;overflow-y:auto;padding:16px}
+
+/* ---------- left: transcript ---------- */
+#transcript{max-width:760px}
+.sent{position:relative;margin:0 0 2px;padding:3px 8px 3px 58px;border-radius:6px}
+.sent:hover{background:#efeee8}
+.sent.hit{background:var(--accent-soft);box-shadow:inset 2px 0 0 var(--accent)}
+.sent .tc{position:absolute;left:8px;top:5px;width:44px;text-align:right;
+  font:10.5px/1.5 var(--mono);color:#b8b5ac;user-select:none;font-variant-numeric:tabular-nums}
+.sent .txt{outline:none;display:inline;font-size:16px;line-height:1.95}
+.sent .txt.editing{background:#fffdf5;box-shadow:0 0 0 2px #f0e2b8;border-radius:3px}
+.sent .pen{position:absolute;right:8px;top:6px;opacity:0;font-size:11px;color:var(--ink-3);
+  border:1px solid var(--line-2);background:#fff;border-radius:4px;padding:1px 5px;cursor:pointer;user-select:none}
+.sent:hover .pen{opacity:1}
+.sent .pen:hover{color:var(--ink);background:#f4f3ed}
+.sent .marks{display:inline;margin-left:2px}
+.mk{display:inline-block;vertical-align:super;font-size:11px;line-height:1;margin-left:1px;
+  padding:2px 4px;border-radius:4px;background:var(--mark-soft);color:var(--mark);
+  border:1px solid #ecd9ae;cursor:pointer;user-select:none;font-family:var(--mono)}
+.mk:hover{background:#f6e3bb}
+.sent .hkbadge{display:inline-block;vertical-align:super;font-size:10px;line-height:1;margin-left:3px;
+  padding:2px 5px;border-radius:4px;background:var(--hook-soft);color:var(--hook);
+  border:1px solid #c6ded1;user-select:none;font-family:var(--mono)}
+
+/* selection popup */
+#pop{position:absolute;z-index:50;display:none;background:#26251f;color:#fff;border-radius:8px;
+  padding:6px;box-shadow:0 6px 24px rgba(0,0,0,.28);white-space:nowrap}
+#pop .lbl{font-size:11px;color:#a9a69c;padding:0 6px;display:inline-block}
+#pop button{background:#3a3830;border-color:#4a483f;color:#f2f0e9;padding:4px 8px;font-size:12px}
+#pop button:hover{background:#4d4a40}
+#pop button.mk-btn{background:#6b4a13;border-color:#7d5a1c}
+#pop .sep{display:inline-block;width:1px;height:16px;background:#4a483f;margin:0 5px;vertical-align:middle}
+
+/* ---------- right ---------- */
+.right{display:grid;grid-template-rows:minmax(0,auto) minmax(0,1fr);min-height:0}
+.section{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.section + .section{border-top:1px solid var(--line)}
+
+/* hooks */
+#hooks{padding:12px 14px;overflow-y:auto;max-height:46vh}
+.slot{border:1px solid var(--line);background:var(--panel);border-radius:var(--radius);
+  margin-bottom:9px;overflow:hidden}
+.slot.filled{border-color:#bcd6c8}
+.slot .sh{display:flex;align-items:center;gap:7px;padding:6px 9px;background:#fafaf7;border-bottom:1px solid var(--line)}
+.slot.filled .sh{background:var(--hook-soft)}
+.slot .n{font:600 12px/1 var(--mono);color:var(--hook);background:#fff;border:1px solid #c6ded1;
+  border-radius:4px;padding:3px 6px}
+.slot .meta{font:10.5px/1.4 var(--mono);color:var(--ink-3);font-variant-numeric:tabular-nums}
+.slot .sh .spacer{flex:1}
+.slot textarea{width:100%;border:0;outline:none;resize:vertical;min-height:52px;padding:8px 10px;
+  font:15px/1.7 inherit;background:transparent;color:var(--ink)}
+.slot textarea::placeholder{color:#b9b6ad}
+.warn{font-size:11px;color:var(--accent);padding:0 10px 7px}
+
+/* notes */
+#notes{padding:12px 14px;overflow-y:auto;flex:1;min-height:0}
+.note{border:1px solid var(--line);background:var(--panel);border-radius:var(--radius);margin-bottom:9px}
+.note.stale{border-color:#e0b9a6}
+.note .nh{display:flex;align-items:center;gap:7px;padding:6px 9px;background:#fafaf7;border-bottom:1px solid var(--line)}
+.note .n{font:600 12px/1 var(--mono);color:var(--mark);background:var(--mark-soft);
+  border:1px solid #ecd9ae;border-radius:4px;padding:3px 6px;cursor:pointer}
+.note .nh .spacer{flex:1}
+.note select{font:12px/1 inherit;padding:4px 6px;border:1px solid var(--line-2);border-radius:5px;background:#fff}
+.note .quote{padding:7px 10px;font-size:12.5px;color:var(--ink-2);background:#fbfaf6;
+  border-bottom:1px solid var(--line);cursor:pointer;line-height:1.65}
+.note .quote:hover{color:var(--ink)}
+.note .quote:before{content:"「";color:var(--ink-3)}
+.note .quote:after{content:"」";color:var(--ink-3)}
+.note textarea{width:100%;border:0;outline:none;resize:vertical;min-height:60px;padding:8px 10px;
+  font:14.5px/1.7 inherit;background:transparent;color:var(--ink)}
+.note textarea::placeholder{color:#b9b6ad}
+.note .stale-tag{font-size:11px;color:var(--accent);background:var(--accent-soft);
+  border:1px solid #eec9b8;border-radius:4px;padding:2px 5px}
+.empty{color:var(--ink-3);font-size:13px;padding:14px;text-align:center;border:1px dashed var(--line-2);border-radius:var(--radius)}
+
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#26251f;color:#fff;
+  padding:9px 16px;border-radius:8px;font-size:13px;z-index:99;opacity:0;transition:opacity .18s;pointer-events:none}
+.toast.on{opacity:1}
+code.path{font:11.5px/1 var(--mono);background:#f0efe9;border:1px solid var(--line);
+  padding:3px 6px;border-radius:4px;color:var(--ink-2)}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>口播工作台</h1>
+    <span class="proj" id="projName">—</span>
+    <span class="stat">Hook <b id="stHook">0</b>/5</span>
+    <span class="stat">视觉标注 <b id="stNote">0</b></span>
+    <span class="stat">锚点句时长 <b id="stCov">0%</b> <span style="color:var(--ink-3)">(参考)</span></span>
+    <span class="spacer"></span>
+    <span class="stat" id="saved" style="color:var(--ink-3)"></span>
+    <button class="ghost" id="btnReset">清空草稿</button>
+    <button id="btnCopy">复制 JSON</button>
+    <button class="primary" id="btnExport">导出 worktable.json</button>
+  </header>
+
+  <main>
+    <!-- LEFT -->
+    <section class="pane">
+      <div class="pane-head">
+        <h2>Transcript</h2>
+        <span class="hint">选中文字 → 弹出条填 Hook 或加视觉标注 · 句子可直接点开修改</span>
+      </div>
+      <div class="pane-body"><div id="transcript"></div></div>
+    </section>
+
+    <!-- RIGHT -->
+    <section class="pane right">
+      <div class="section">
+        <div class="pane-head">
+          <h2>Hook（上限 5，可空）</h2>
+          <span class="hint">粘贴也行，会自动回找原文锚点</span>
+        </div>
+        <div id="hooks"></div>
+      </div>
+      <div class="section">
+        <div class="pane-head">
+          <h2>视觉标注 · 大白话</h2>
+          <span class="hint">这段要插什么图，直接写</span>
+          <span style="flex:1"></span>
+          <button class="ghost" id="btnAddNote">+ 无锚点标注</button>
+        </div>
+        <div id="notes"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="pop"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {"project": "worktable-demo", "source_srt": "source.srt", "generated_at": "2026-09-08T10:21:44+08:00", "transcript": [{"id": "s001", "text": "大家好，今天我想聊一个很多人都搞错的问题。", "start_hint": 0.0, "end_hint": 4.2, "timing": "approximate_from_srt_block"}, {"id": "s002", "text": "为什么你的内容明明质量不差，却没有人看？", "start_hint": 4.68, "end_hint": 9.0, "timing": "approximate_from_srt_block"}, {"id": "s003", "text": "我先说结论：问题不在产品，在于你根本没有把它拍出来。", "start_hint": 9.0, "end_hint": 14.5, "timing": "approximate_from_srt_block"}, {"id": "s004", "text": "我自己过去三个月写了六十一篇东西，但是只发了零条视频。", "start_hint": 14.5, "end_hint": 20.0, "timing": "approximate_from_srt_block"}, {"id": "s005", "text": "这个数字第一次摆在我面前的时候，我是有点被吓到的。", "start_hint": 20.0, "end_hint": 26.3, "timing": "approximate_from_srt_block"}, {"id": "s006", "text": "因为它说明，我的瓶颈根本不在选题，也不在写作。", "start_hint": 26.3, "end_hint": 32.0, "timing": "approximate_from_srt_block"}, {"id": "s007", "text": "第二个误区是，大家总觉得要先把系统做完美再开始。", "start_hint": 32.0, "end_hint": 37.8, "timing": "approximate_from_srt_block"}, {"id": "s008", "text": "但是完美的系统如果没有观众，它就是一个昂贵的玩具。", "start_hint": 37.8, "end_hint": 43.0, "timing": "approximate_from_srt_block"}, {"id": "s009", "text": "所以我给自己定了一条规矩：七天不上镜的东西就不做。", "start_hint": 43.0, "end_hint": 49.5, "timing": "approximate_from_srt_block"}, {"id": "s010", "text": "这条规矩救了我很多时间，也帮我砍掉了三个项目。", "start_hint": 49.5, "end_hint": 55.0, "timing": "approximate_from_srt_block"}]};
+
+/* ---------------- state ---------------- */
+const KEY = 'park-worktable::' + (DATA.project || 'default');
+const blank = () => ({
+  hooks: Array.from({length:5}, (_,i)=>({slot:i+1, text:'', anchor:null})),
+  notes: [],
+  text_overrides: {}
+});
+let S = blank();
+let stale = new Set();
+
+const SENT = DATA.transcript;
+const byId = Object.fromEntries(SENT.map(s=>[s.id,s]));
+const IDS  = SENT.map(s=>s.id);
+
+/* stripped stream for paste re-anchoring */
+const PUNCT_SRC = "[\\s\u3000。，、；：？！…—·「」『』\u201c\u201d\u2018\u2019()（）《》〈〉【】\\[\\]{}.,!?;:'\"~`\\-_/\\\\|+*=%$#@^&<>]";
+const PUNCT_G = new RegExp(PUNCT_SRC,'g');
+const PUNCT_1 = new RegExp('^'+PUNCT_SRC+'$');
+const strip = s => (s||'').replace(PUNCT_G,'');
+let FLAT='', FLATMAP=[];
+function rebuildFlat(){
+  FLAT=''; FLATMAP=[];
+  for(const s of SENT){
+    const t = curText(s.id);
+    for(let i=0;i<t.length;i++){
+      if(PUNCT_1.test(t[i])) continue;
+      FLAT += t[i]; FLATMAP.push([s.id,i]);
+    }
+  }
+}
+const curText = id => (S.text_overrides[id] !== undefined ? S.text_overrides[id] : byId[id].text);
+
+/* ---------------- utils ---------------- */
+const CIRC = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩','⑪','⑫','⑬','⑭','⑮','⑯','⑰','⑱','⑲','⑳'];
+const circ = n => CIRC[n-1] || ('(' + n + ')');
+function tc(sec){
+  if(sec==null||isNaN(sec)) return '--:--';
+  const m=Math.floor(sec/60), s=sec-m*60;
+  return String(m).padStart(2,'0')+':'+s.toFixed(1).padStart(4,'0');
+}
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('on');
+  clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('on'),1900);
+}
+
+/* time hint for a whole sentence, or a char sub-range inside it */
+function hintOf(id, from, to){
+  const s = byId[id]; if(!s) return [null,null];
+  const a=s.start_hint, b=s.end_hint;
+  if(a==null||b==null) return [a,b];
+  const L = curText(id).length || 1;
+  if(from==null) return [a,b];
+  const lerp = p => +(a + (b-a) * Math.max(0,Math.min(1,p/L))).toFixed(2);
+  return [lerp(from), lerp(to)];
+}
+/* exact selected text, sliced from the model — never from toString(),
+   which both swallows the timecode gutter and clamps at contenteditable hosts */
+function textOf(ids, from, to){
+  return ids.map((id,i)=>{
+    const t=curText(id);
+    const a = (i===0) ? Math.max(0,Math.min(from,t.length)) : 0;
+    const b = (i===ids.length-1) ? Math.max(0,Math.min(to,t.length)) : t.length;
+    return t.slice(a,b);
+  }).join('');
+}
+
+/* anchor = {ids:[], from, to, start_hint, end_hint, quote} */
+function anchorSpan(ids, from, to){
+  if(!ids.length) return null;
+  const [s0] = hintOf(ids[0], from, from);
+  const [,e1] = hintOf(ids[ids.length-1], null, null);
+  const last = ids[ids.length-1];
+  const [, eSub] = hintOf(last, 0, to==null ? curText(last).length : to);
+  return {
+    ids, from, to,
+    start_hint: s0,
+    end_hint: (to==null ? e1 : eSub),
+    timing: 'approximate_from_srt_block'
+  };
+}
+function anchorFromFlat(a, b){ // [a,b) indices in FLAT
+  const ids=[]; for(let i=a;i<b;i++){ const id=FLATMAP[i][0]; if(ids[ids.length-1]!==id) ids.push(id); }
+  if(!ids.length) return null;
+  return anchorSpan(ids, FLATMAP[a][1], FLATMAP[b-1][1]+1);
+}
+
+/* ---------------- persistence ---------------- */
+let saveT=null;
+function save(){
+  clearTimeout(saveT);
+  saveT=setTimeout(()=>{
+    try{ localStorage.setItem(KEY, JSON.stringify(S));
+      document.getElementById('saved').textContent='已存草稿 '+new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+    }catch(e){ document.getElementById('saved').textContent='草稿保存失败'; }
+  },400);
+}
+function load(){
+  try{
+    const raw = localStorage.getItem(KEY); if(!raw) return;
+    const d = JSON.parse(raw);
+    S = Object.assign(blank(), d);
+    if(!Array.isArray(S.hooks)||S.hooks.length!==5) S.hooks = blank().hooks;
+    S.text_overrides = S.text_overrides || {};
+    // flag anchors pointing at sentences that no longer exist — keep the text
+    const check = a => a && a.ids && a.ids.some(id=>!byId[id]);
+    S.hooks.forEach(h=>{ if(check(h.anchor)) stale.add('h'+h.slot); });
+    S.notes.forEach(n=>{ if(check(n.anchor)) stale.add('n'+n.marker); });
+    for(const id of Object.keys(S.text_overrides)) if(!byId[id]) delete S.text_overrides[id];
+    if(stale.size) toast('有 '+stale.size+' 条锚点失效（文稿已变），文字已保留，请重新指认');
+  }catch(e){ console.warn(e); }
+}
+
+/* ---------------- render: transcript ---------------- */
+function renderTranscript(){
+  const root=document.getElementById('transcript');
+  root.innerHTML='';
+  for(const s of SENT){
+    const p=document.createElement('p');
+    p.className='sent'; p.dataset.id=s.id;
+    p.innerHTML =
+      '<span class="tc">'+tc(s.start_hint)+'</span>'+
+      '<span class="txt" spellcheck="false"></span>'+
+      '<span class="marks"></span>'+
+      '<span class="pen" title="改这句（双击句子也可以）">改</span>';
+    const tx=p.querySelector('.txt');
+    tx.textContent = curText(s.id);
+    tx.addEventListener('dblclick', ()=>beginEdit(s.id));
+    p.querySelector('.pen').addEventListener('mousedown', e=>{ e.preventDefault(); beginEdit(s.id); });
+    root.appendChild(p);
+  }
+  paintBadges();
+}
+function paintBadges(){
+  document.querySelectorAll('.sent .marks').forEach(m=>m.innerHTML='');
+  for(const n of S.notes){
+    if(!n.anchor) continue;
+    const last=n.anchor.ids[n.anchor.ids.length-1];
+    const host=document.querySelector('.sent[data-id="'+last+'"] .marks');
+    if(!host) continue;
+    const b=document.createElement('span');
+    b.className='mk'; b.textContent=circ(n.marker); b.title='跳到视觉标注 '+n.marker;
+    b.onclick=()=>{ const el=document.getElementById('note-'+n.marker);
+      if(el){ el.scrollIntoView({block:'center',behavior:'smooth'}); flash(el); } };
+    host.appendChild(b);
+  }
+  for(const h of S.hooks){
+    if(!h.text.trim()||!h.anchor) continue;
+    const last=h.anchor.ids[h.anchor.ids.length-1];
+    const host=document.querySelector('.sent[data-id="'+last+'"] .marks');
+    if(!host) continue;
+    const b=document.createElement('span');
+    b.className='hkbadge'; b.textContent='H'+h.slot;
+    host.appendChild(b);
+  }
+}
+let EDITING=null;
+function beginEdit(id){
+  if(EDITING && EDITING!==id) endEdit();
+  const tx=document.querySelector('.sent[data-id="'+id+'"] .txt');
+  if(!tx) return;
+  EDITING=id;
+  tx.setAttribute('contenteditable','true');
+  tx.classList.add('editing');
+  tx.focus();
+  const r=document.createRange(); r.selectNodeContents(tx); r.collapse(false);
+  const sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+  tx.onblur=()=>endEdit();
+  tx.onkeydown=e=>{ if(e.key==='Escape'||(e.key==='Enter'&&!e.shiftKey)){ e.preventDefault(); tx.blur(); } };
+}
+function endEdit(){
+  if(!EDITING) return;
+  const id=EDITING; EDITING=null;
+  const tx=document.querySelector('.sent[data-id="'+id+'"] .txt');
+  if(!tx) return;
+  const next=(tx.textContent||'').replace(/\s+$/,'');
+  tx.removeAttribute('contenteditable'); tx.classList.remove('editing'); tx.onblur=null; tx.onkeydown=null;
+  if(next===curText(id)) return;
+  if(!next.trim()){ tx.textContent=curText(id); toast('句子不能清空'); return; }
+  S.text_overrides[id]=next; tx.textContent=next;
+  rebuildFlat();
+  // The anchor is a POSITION, and the sentence still exists — so re-read the text off the
+  // anchor instead of hunting for the old wording. Editing the transcript is how Park fixes
+  // typos; a hook quoting that sentence should follow the fix, not go stale because of it.
+  // Only a boundary sentence (where a character offset lives) is flagged for a second look.
+  let review=0;
+  const refresh=(obj,key)=>{
+    const a=obj.anchor; if(!a || !a.ids.includes(id)) return;
+    const boundary = (a.ids[0]===id) || (a.ids[a.ids.length-1]===id);
+    const last=a.ids[a.ids.length-1];
+    a.to = Math.min(a.to, curText(last).length);
+    a.from = Math.min(a.from, curText(a.ids[0]).length);
+    const re = anchorSpan(a.ids, a.from, a.to);
+    if(re) obj.anchor = re;
+    obj.text = textOf(a.ids, a.from, a.to);
+    if(boundary){ stale.add(key); review++; } 
+  };
+  S.hooks.forEach(h=>{ if(h.text.trim()) refresh(h,'h'+h.slot); });
+  S.notes.forEach(n=>{ const o={text:n.quote,anchor:n.anchor}; refresh(o,'n'+n.marker);
+    if(o.anchor){ n.anchor=o.anchor; n.quote=o.text; } });
+  renderHooks(); renderNotes(); paintBadges(); stats(); save();
+  if(review) toast('改的是锚点首尾那句，'+review+' 条锚点已跟着更新，请扫一眼确认');
+}
+function flash(el){ el.style.transition='none'; el.style.background='#fbf0da';
+  requestAnimationFrame(()=>{ el.style.transition='background .9s'; el.style.background=''; }); }
+
+/* ---------------- selection popup ---------------- */
+const pop=document.getElementById('pop');
+let SEL=null;
+
+function readSelection(){
+  const sel=window.getSelection();
+  if(!sel || sel.isCollapsed || sel.rangeCount===0) return null;
+  const r=sel.getRangeAt(0);
+  const sents=[...document.querySelectorAll('.sent')].filter(p=>{
+    try{ return r.intersectsNode(p.querySelector('.txt')); }catch(e){ return false; }
+  });
+  if(!sents.length) return null;
+  const ids=sents.map(p=>p.dataset.id);
+  const offIn=(p,node,off)=>{
+    const t=p.querySelector('.txt'); const c=document.createRange();
+    c.selectNodeContents(t);
+    try{ c.setEnd(node,off); }catch(e){ return null; }
+    return c.toString().length;
+  };
+  const first=sents[0], last=sents[sents.length-1];
+  const ftx=first.querySelector('.txt'), ltx=last.querySelector('.txt');
+  let from = ftx.contains(r.startContainer) ? offIn(first,r.startContainer,r.startOffset) : 0;
+  let to   = ltx.contains(r.endContainer)   ? offIn(last,r.endContainer,r.endOffset)     : curText(ids[ids.length-1]).length;
+  if(from==null) from=0;
+  if(to==null) to=curText(ids[ids.length-1]).length;
+  const text=textOf(ids,from,to);
+  if(!text.trim()) return null;
+  return {text, ids, from, to, rect:r.getBoundingClientRect()};
+}
+function showPop(){
+  const s=readSelection();
+  if(!s){ pop.style.display='none'; SEL=null; return; }
+  SEL=s;
+  const free=S.hooks.find(h=>!h.text.trim());
+  let html='<span class="lbl">'+s.text.length+' 字</span>';
+  for(const h of S.hooks) html+='<button data-hook="'+h.slot+'">H'+h.slot+(h.text.trim()?'·换':'')+'</button>';
+  html+='<span class="sep"></span><button class="mk-btn" data-mark="1">+ 视觉标注 '+circ(S.notes.length+1)+'</button>';
+  pop.innerHTML=html;
+  pop.style.display='block';
+  const pr=pop.getBoundingClientRect();
+  let x=s.rect.left + s.rect.width/2 - pr.width/2;
+  x=Math.max(8, Math.min(window.innerWidth-pr.width-8, x));
+  let y=s.rect.top + window.scrollY - pr.height - 9;
+  if(y < 4) y = s.rect.bottom + window.scrollY + 9;
+  pop.style.left=x+'px'; pop.style.top=y+'px';
+}
+document.addEventListener('mouseup', ()=>setTimeout(showPop,0));
+document.addEventListener('keyup', e=>{ if(e.shiftKey||e.key.startsWith('Arrow')) setTimeout(showPop,0); });
+document.addEventListener('mousedown', e=>{ if(!pop.contains(e.target)) pop.style.display='none'; });
+pop.addEventListener('mousedown', e=>e.preventDefault());
+pop.addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b||!SEL) return;
+  if(b.dataset.hook) fillHook(+b.dataset.hook, SEL.text, anchorSpan(SEL.ids,SEL.from,SEL.to));
+  if(b.dataset.mark) addNote(SEL.text, anchorSpan(SEL.ids,SEL.from,SEL.to));
+  pop.style.display='none'; window.getSelection().removeAllRanges();
+});
+
+/* ---------------- hooks ---------------- */
+function fillHook(slot, text, anchor){
+  const h=S.hooks[slot-1];
+  h.text=text; h.anchor=anchor; stale.delete('h'+slot);
+  renderHooks(); paintBadges(); stats(); save();
+  toast('已填入 Hook '+slot);
+}
+function renderHooks(){
+  const root=document.getElementById('hooks'); root.innerHTML='';
+  for(const h of S.hooks){
+    const filled=!!h.text.trim();
+    const d=document.createElement('div');
+    d.className='slot'+(filled?' filled':'');
+    const a=h.anchor;
+    const meta = filled
+      ? (a ? a.ids[0]+(a.ids.length>1?'–'+a.ids[a.ids.length-1]:'')+' · ~'+tc(a.start_hint)+'–'+tc(a.end_hint)+' · '+h.text.trim().length+'字'
+           : '无锚点 · '+h.text.trim().length+'字')
+      : '空';
+    d.innerHTML=
+      '<div class="sh"><span class="n">Hook '+h.slot+'</span>'+
+      '<span class="meta">'+meta+'</span><span class="spacer"></span>'+
+      (h.slot>1?'<button class="ghost" data-up="'+h.slot+'" title="上移">↑</button>':'')+
+      (h.slot<5?'<button class="ghost" data-dn="'+h.slot+'" title="下移">↓</button>':'')+
+      (filled?'<button class="ghost" data-clr="'+h.slot+'" title="清空">✕</button>':'')+
+      '</div>'+
+      '<textarea placeholder="粘贴或从左侧选中填入…">'+'</textarea>'+
+      (stale.has('h'+h.slot)?'<div class="warn">请复核：这句被改过，文字已跟着更新</div>':'');
+    const ta=d.querySelector('textarea'); ta.value=h.text;
+    ta.addEventListener('input', ()=>{ h.text=ta.value; save(); });
+    ta.addEventListener('blur', ()=>{ reanchor(h,'h'+h.slot); renderHooks(); paintBadges(); stats(); save(); });
+    root.appendChild(d);
+  }
+  root.querySelectorAll('[data-clr]').forEach(b=>b.onclick=()=>{
+    const h=S.hooks[+b.dataset.clr-1]; h.text=''; h.anchor=null; stale.delete('h'+h.slot);
+    renderHooks(); paintBadges(); stats(); save();
+  });
+  const swap=(i,j)=>{ const A=S.hooks[i],B=S.hooks[j];
+    [A.text,B.text]=[B.text,A.text]; [A.anchor,B.anchor]=[B.anchor,A.anchor];
+    renderHooks(); paintBadges(); save(); };
+  root.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>swap(+b.dataset.up-1,+b.dataset.up-2));
+  root.querySelectorAll('[data-dn]').forEach(b=>b.onclick=()=>swap(+b.dataset.dn-1,+b.dataset.dn));
+}
+/* paste-safe: find the text back in the transcript so a missing character still anchors */
+function findSpan(q){
+  let i=FLAT.indexOf(q);
+  if(i>=0) return [i, i+q.length];
+  if(q.length < 10) return null;
+  // head/tail probe: survives a missing or extra character anywhere in the middle
+  const head=q.slice(0,6), tail=q.slice(-6);
+  const a=FLAT.indexOf(head);
+  if(a<0) return null;
+  const b=FLAT.indexOf(tail, a+head.length);
+  if(b<0) return null;
+  const end=b+tail.length, span=end-a;
+  if(Math.abs(span-q.length) > Math.max(3, Math.round(q.length*0.15))) return null;
+  return [a, end];
+}
+function reanchor(obj, staleKey){
+  const q=strip(obj.text);
+  if(!q){ obj.anchor=null; return; }
+  const sp=findSpan(q);
+  if(!sp){ obj.anchor=null; return; }
+  obj.anchor=anchorFromFlat(sp[0], sp[1]);
+  obj.anchor.match = (FLAT.indexOf(q)>=0) ? 'exact' : 'fuzzy';
+  if(staleKey) stale.delete(staleKey);
+}
+
+/* ---------------- notes ---------------- */
+function addNote(quote, anchor){
+  const marker=(S.notes.reduce((m,n)=>Math.max(m,n.marker),0))+1;
+  S.notes.push({marker, quote:quote||'', anchor:anchor||null, kind:'', intent:''});
+  renderNotes(); paintBadges(); stats(); save();
+  setTimeout(()=>{ const el=document.getElementById('note-'+marker);
+    if(el){ el.scrollIntoView({block:'center',behavior:'smooth'}); el.querySelector('textarea').focus(); } },30);
+}
+function renderNotes(){
+  const root=document.getElementById('notes'); root.innerHTML='';
+  if(!S.notes.length){
+    root.innerHTML='<div class="empty">还没有视觉标注。<br>在左边选中一句话 → 点「+ 视觉标注」，然后用大白话写这里要插什么图。</div>';
+    return;
+  }
+  for(const n of S.notes){
+    const d=document.createElement('div');
+    d.className='note'+(stale.has('n'+n.marker)?' stale':'');
+    d.id='note-'+n.marker;
+    const a=n.anchor;
+    const t = a ? '~'+tc(a.start_hint)+'–'+tc(a.end_hint) : '无锚点';
+    d.innerHTML=
+      '<div class="nh"><span class="n" data-goto="'+n.marker+'" title="跳到原文">'+circ(n.marker)+'</span>'+
+      '<span class="meta" style="font:10.5px/1.4 var(--mono);color:var(--ink-3)">'+t+'</span>'+
+      (stale.has('n'+n.marker)?'<span class="stale-tag">请复核</span>':'')+
+      '<span class="spacer"></span>'+
+      '<select data-kind="'+n.marker+'">'+
+        ['未指定','B-roll','截图/录屏','图表','Illustration','动效','其他']
+          .map(k=>'<option'+((n.kind||'未指定')===k?' selected':'')+'>'+k+'</option>').join('')+
+      '</select>'+
+      '<button class="ghost" data-del="'+n.marker+'" title="删除">✕</button></div>'+
+      (n.quote?'<div class="quote" data-goto="'+n.marker+'">'+esc(n.quote)+'</div>':'')+
+      '<textarea placeholder="大白话：这里要插一个什么样的图…"></textarea>';
+    const ta=d.querySelector('textarea'); ta.value=n.intent;
+    ta.addEventListener('input',()=>{ n.intent=ta.value; save(); });
+    root.appendChild(d);
+  }
+  root.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{
+    S.notes=S.notes.filter(x=>x.marker!==+b.dataset.del);
+    S.notes.forEach((n,i)=>n.marker=i+1);
+    renderNotes(); paintBadges(); stats(); save();
+  });
+  root.querySelectorAll('select[data-kind]').forEach(s=>s.onchange=()=>{
+    const n=S.notes.find(x=>x.marker===+s.dataset.kind); n.kind=s.value==='未指定'?'':s.value; save();
+  });
+  root.querySelectorAll('[data-goto]').forEach(el=>el.onclick=()=>{
+    const n=S.notes.find(x=>x.marker===+el.dataset.goto);
+    if(!n||!n.anchor) return;
+    document.querySelectorAll('.sent.hit').forEach(p=>p.classList.remove('hit'));
+    n.anchor.ids.forEach(id=>{
+      const p=document.querySelector('.sent[data-id="'+id+'"]');
+      if(p){ p.classList.add('hit'); } });
+    const p0=document.querySelector('.sent[data-id="'+n.anchor.ids[0]+'"]');
+    if(p0) p0.scrollIntoView({block:'center',behavior:'smooth'});
+  });
+}
+const esc = s => s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+/* ---------------- stats + export ---------------- */
+function stats(){
+  document.getElementById('stHook').textContent=S.hooks.filter(h=>h.text.trim()).length;
+  document.getElementById('stNote').textContent=S.notes.length;
+  const total=(SENT.length?(SENT[SENT.length-1].end_hint - SENT[0].start_hint):0)||1;
+  let cov=0;
+  const ivs=S.notes.filter(n=>n.anchor).map(n=>[n.anchor.start_hint,n.anchor.end_hint]).sort((a,b)=>a[0]-b[0]);
+  let cur=null;
+  for(const iv of ivs){ if(!cur||iv[0]>cur[1]){ if(cur)cov+=cur[1]-cur[0]; cur=[...iv]; } else cur[1]=Math.max(cur[1],iv[1]); }
+  if(cur)cov+=cur[1]-cur[0];
+  document.getElementById('stCov').textContent=Math.round(cov/total*100)+'%';
+}
+function payload(){
+  return {
+    schema:'park-video-worktable/v1',
+    project:DATA.project, source_srt:DATA.source_srt,
+    generated_at:DATA.generated_at, exported_at:new Date().toISOString(),
+    timing_note:'所有 start_hint / end_hint 由 SRT 字幕块线性插值得到，是近似值，不得直接用于 Step 7 精确切割。',
+    transcript:SENT.map(s=>({...s, text:curText(s.id)})),
+    hooks:S.hooks.filter(h=>h.text.trim()).map((h,i)=>({
+      slot:h.slot, order:i+1, text:h.text.trim(), anchor:h.anchor,
+      anchor_status: stale.has('h'+h.slot)?'stale':(h.anchor?'ok':'unmatched')})),
+    visual_notes:S.notes.map(n=>({
+      marker:n.marker, kind:n.kind||null, quote:n.quote, intent:n.intent.trim(), anchor:n.anchor,
+      anchor_status: stale.has('n'+n.marker)?'stale':(n.anchor?'ok':'unmatched'),
+      disposition:null, disposition_reason:null}))
+  };
+}
+document.getElementById('btnExport').onclick=()=>{
+  const b=new Blob([JSON.stringify(payload(),null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(b); a.download='worktable.json'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  toast('已下载 worktable.json → 请放回项目的 analysis/worktable.json');
+};
+document.getElementById('btnCopy').onclick=async()=>{
+  try{ await navigator.clipboard.writeText(JSON.stringify(payload(),null,2)); toast('JSON 已复制到剪贴板'); }
+  catch(e){ toast('复制失败，请用「导出」按钮'); }
+};
+document.getElementById('btnReset').onclick=()=>{
+  if(!confirm('清空本机草稿？Hook、视觉标注和文字修改都会丢。')) return;
+  localStorage.removeItem(KEY); S=blank(); stale=new Set();
+  rebuildFlat(); renderTranscript(); renderHooks(); renderNotes(); stats();
+};
+document.getElementById('btnAddNote').onclick=()=>addNote('',null);
+
+/* ---------------- boot ---------------- */
+document.getElementById('projName').textContent=DATA.project||'未命名项目';
+load(); rebuildFlat(); renderTranscript(); renderHooks(); renderNotes(); stats();
+</script>
+</body>
+</html>

@@ -38,13 +38,31 @@ Never restart a passed step merely because a new Agent session began. Never skip
 
 | Stage | Canonical steps | Completion boundary |
 | --- | --- | --- |
-| A. Preparation | 1–4 | Inputs preserved; clean rough cut and reliable subtitle timing are ready |
+| A. Preparation | 1–4 | Inputs preserved; subtitle timing is reliable; `analysis/worktable.html` is in Park's hands |
 | B. Hook and Product A | 5–9 | Approved Hook is rendered as Product A and passes QA A |
 | C. Body and Visual Direction | 10–11 | Body is picture-locked; approved visual plan is rendered |
 | D. Sound and Product B | 12–13 | Body audio, top-layer subtitles, render, and QA B pass |
 | E. Final Delivery | 14 | Product A and Product B are concatenated and QA Final passes |
 
 These stages group the existing steps; they do not renumber or replace the 14-step workflow.
+
+## Step 4 worktable
+
+Preparation does not end at "subtitles are usable." It ends when Park has a worktable to work on.
+
+Correct the transcript for punctuation and typos only — never add, drop, reorder, or polish — then align that corrected text back onto the SRT timing rather than assuming the two still match:
+
+```bash
+python3 scripts/build_worktable.py map --srt subtitles/source.srt \
+  --text subtitles/transcript.corrected.txt --project <name> \
+  -o subtitles/transcript.sentences.json
+python3 scripts/build_worktable.py html subtitles/transcript.sentences.json \
+  -o analysis/worktable.html
+```
+
+`map` refuses to emit anything when the corrected text drifted past ±max(3, 0.5%) non-punctuation characters or below 0.95 similarity. A guard failure means the correction pass invented words Park did not say, which would propagate into every Hook quote downstream. Fix the correction. `--force` is not an agent's call: raise it as an exceptional blocker, get Park's explicit approval, and record who approved which discrepancy in `process-log.md`.
+
+In the worktable Park picks Hooks (up to 5, an upper bound rather than a quota) and writes plain-language visual notes anchored to numbered markers in the transcript. Export lands in the browser's download folder; copy it to `analysis/worktable.json` and confirm the path with Park before Step 5. Every time in it is `start_hint`/`end_hint` — interpolated inside SRT cue blocks, positional only, never a cut point.
 
 ## Three normal human gates
 
@@ -54,11 +72,13 @@ A gate becomes current only when its review artifact exists. Until then, continu
 
 ### H1 — Hook Approval at Step 5
 
-Present Hook candidates with exact quote, source time, why it works, and proposed order. Wait for the user to approve the sentences and order before Step 7 extraction. Record the decision in `project.json` and the approved candidate set.
+Park selects Hooks himself in the worktable; do not nominate over him. Read `hooks` from `analysis/worktable.json` in `order`, verify each quote against the transcript, convert each `anchor` into candidate cut points, and flag anything word-incomplete or judgment-without-subject. Resolve every `anchor_status: stale`/`unmatched` entry with Park first, and read `match: "fuzzy"` quotes back for confirmation. Derive `analysis/hook-candidates.json` from the worktable rather than authoring a second truth. Fall back to AI nomination only when Park left the worktable empty, noting why in `process-log.md`. Wait for approval of sentences and order before Step 7 extraction.
 
 Freeze the Product A/B shared media, audio, caption-style, and caption-layout preset IDs at this gate. This approves the Hook decision; it does not invite a new caption design unless the user explicitly requests an override.
 
 ### H2 — Visual Spec Approval inside Step 11
+
+Park's `visual_notes` are required input, not inspiration. Give every note a `disposition` of 采纳/调整/拒绝 in `visual-plan.json`, with a `disposition_reason` for the latter two, and show note number, Park's own wording, and disposition as rows in the spec table so H2 reveals exactly what was overridden. Decide freely wherever Park left no note.
 
 After Picture Lock, generate `visual-plan.json` and a readable spec table. Show the table, planned coverage, source/provenance, and any exceptions. Wait for approval before rendering any production visual layer. Freeze the approved snapshot; record later changes in `changes.md`.
 
@@ -89,6 +109,7 @@ The parent workflow owns editorial structure, subtitles, audio, and final assemb
 Make `part-b-body/visual-plan.json` the executable visual truth. For each shot include:
 
 - `id`, `start`, `end`, and matching transcript;
+- `source_note` plus `disposition` and `disposition_reason` when the shot answers a worktable note;
 - communication purpose and `visual_type`;
 - treatment plus asset/source/provenance;
 - `cue_points.enter`, `reveal`, `hold`, and `exit`;
@@ -133,14 +154,14 @@ Use the completion criteria below to select the next step; consult `VIDEO_WORKFL
 | 1 | Create project contract | Valid `project.json` with Product A/B/Final targets and four preset IDs |
 | 2 | Preserve source material | Inputs inventoried and untouched copies identified |
 | 3 | Inspect media and subtitle state | Specs plus hard-subtitle finding recorded |
-| 4 | Validate or align subtitle sources | Usable `subtitles/source.srt`; different text/timing sources aligned |
-| 5 | Select Hook | H1 approval recorded |
+| 4 | Validate/align subtitles, then build the worktable | Usable `subtitles/source.srt`; `subtitles/transcript.sentences.json` passing the content guard; `analysis/worktable.html` handed to Park |
+| 5 | Read Park's Hook picks from `analysis/worktable.json` | Worktable JSON copied into `analysis/`; H1 approval recorded |
 | 6 | Build Content Map | Complete body map with visual/audio opportunities |
-| 7 | Extract Hook clips | Each clip is word-complete and boundary-checked by listening |
+| 7 | Extract Hook clips (worktable hints are search windows, not cut points) | Each clip is word-complete and boundary-checked by listening |
 | 8 | Assemble Hook data | Approved order plus Product A subtitle data |
 | 9 | Render Product A | Preset-rendered captions, `part-a-hook/video.mp4`, and passing QA A |
 | 10 | Accept rough cut / Picture Lock | `clean-master.mp4` and `edit.json` |
-| 11 | Plan and render visual track | H2-approved `visual-plan.json`, spec snapshot, and passing visual QA |
+| 11 | Plan and render visual track, answering every `visual_notes` entry | H2-approved `visual-plan.json` with a `disposition` per note, spec snapshot, and passing visual QA |
 | 12 | Build sound track | Audio preset applied; optional BGM/SFX overrides recorded in `audio-plan.json` |
 | 13 | Render Product B | Same preset-rendered top-layer captions, `part-b-body/video.mp4`, and passing QA B |
 | 14 | Concatenate and deliver | `final/video.mp4`, passing QA Final, then H3 approval |
