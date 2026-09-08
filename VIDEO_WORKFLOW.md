@@ -1,7 +1,7 @@
 # 口播视频 Workflow（Talking-Head Video Editing & Motion Workflow）
 
-状态：v2.5
-最后更新：2026-09-07  
+状态：v2.6
+最后更新：2026-09-08  
 适用范围：Park 的口播视频剪辑、Hook、字幕、B-roll、动效、BGM、SFX 与最终交付
 
 ## 1. 目标
@@ -96,9 +96,13 @@ Product A 与 Product B 使用相同的画幅、FPS、编码、色彩空间、�
 ├── project.json                     # 整个项目唯一的共享合同与状态
 ├── subtitles/
 │   ├── source.srt                   # 剪映 SRT 或按需生成的替代版本
+│   ├── transcript.corrected.txt     # 只改标点与错别字的校对稿
+│   ├── transcript.sentences.json    # 校对稿对齐到 SRT 时间后的分句
 │   └── words.json                   # 只有需要逐词校准时才生成
 ├── analysis/
-│   ├── hook-candidates.json
+│   ├── worktable.html               # Step 4 交付：Park 的选 Hook / 标视觉工作台
+│   ├── worktable.json               # Park 在工作台里的产出，Step 5 与 Step 11 的输入
+│   ├── hook-candidates.json         # 由 worktable.json 派生，不手写
 │   └── content-map.md
 ├── part-a-hook/
 │   ├── individual/
@@ -130,7 +134,7 @@ Product A 与 Product B 使用相同的画幅、FPS、编码、色彩空间、�
 
 | 大阶段 | Steps | 阶段完成标准 |
 | --- | ---: | --- |
-| Preparation | 1–4 | 素材保全，粗剪与可靠字幕时间就绪 |
+| Preparation | 1–4 | 素材保全，粗剪与可靠字幕时间就绪，`analysis/worktable.html` 已交给 Park |
 | Hook & Product A | 5–9 | Hook 批准并独立成片，QA A 通过 |
 | Body & Visual Direction | 10–11 | 正文 Picture Lock，视觉规格批准并渲染 |
 | Sound & Product B | 12–13 | 声音、最高层字幕与 QA B 完成 |
@@ -185,11 +189,52 @@ Product A 与 Product B 使用相同的画幅、FPS、编码、色彩空间、�
 
 字幕文字与时间可以来自不同来源：`text_source` 负责“写什么”，`timing_source` 负责“何时出现”。两源相同且质量可用时可直接使用；两源不同时必须执行对齐，把文字映射到时间源上，再进入 Hook 切片和字幕制作。允许只校准 Hook 和问题句，不要求全片生成 `words.json`。最终得到一份可用于后续映射的 `subtitles/source.srt`；`words.json` 是可选产物。
 
+#### Step 4 收尾：生成工作台（Preparation 的交付物）
+
+Preparation 不以「字幕可用」结束，而是以「Park 手上有一张能干活的工作台」结束。
+
+```text
+source.srt
+ → 校对（只改标点和错别字）→ transcript.corrected.txt
+ → 对齐回 SRT 时间          → transcript.sentences.json
+ → 渲染                     → analysis/worktable.html
+```
+
+校对只允许做两件事：补标点、改错别字。不许增删句子、不许改语序、不许润色。校对稿与原话是两个来源，必须对齐而不是假设一致：
+
+```bash
+python3 scripts/build_worktable.py map \
+  --srt subtitles/source.srt \
+  --text subtitles/transcript.corrected.txt \
+  --project <name> -o subtitles/transcript.sentences.json
+
+python3 scripts/build_worktable.py html \
+  subtitles/transcript.sentences.json -o analysis/worktable.html
+```
+
+`map` 自带内容守卫：非标点字数差超出 ±max(3, 0.5%) 或相似度低于 0.95 就直接退出并报错，不输出文件。守卫失败意味着校对稿动了内容——也就是校对这一步编造了 Park 没说过的话，而这些话会顺着 Hook 原话一路传到成片。默认处理是回去改校对稿。
+
+`--force` 不是 Agent 能自己签的字：它需要 Park 明确同意，按异常阻塞上报，并在 `process-log.md` 记下是谁批的、批的是哪一处差异。Agent 自行 `--force` 视为违反本条。
+
+工作台里 Park 做两件事：
+
+1. **选 Hook**——在左边划词，填进右上最多 5 个格子。格子是上限不是配额，空的直接跳过。
+2. **标视觉**——在左边划一段，右下生成一张卡，用大白话写这里要插什么图。标注号 ①②③ 会显示在原文对应句尾。
+
+工作台里的时间是 `start_hint` / `end_hint`，由字幕块线性插值得到，**是近似值**。它只用来定位和排序，Step 7 必须重新精确定位，不得拿它直接切割。
+
+Park 点「导出 worktable.json」后文件会落在浏览器下载目录。Agent 必须把它放回 `analysis/worktable.json` 并当面确认路径，才能进入 Step 5——中间产物留在下载目录或临时目录，是本仓库反复掉过的坑。
+
+产物：`subtitles/transcript.sentences.json`、`analysis/worktable.html`。
+
 ### Step 5：Hook 选择与共享合同
 
-- AI 从字幕和音频中提出 Hook 候选。
-- 候选保留原话、来源时间、推荐理由和批准状态即可，不要求复杂评分字段。
-- 用户批准最终句子和顺序。
+- Hook 由 Park 在 `analysis/worktable.html` 里自己选，不由 AI 提名。读 `analysis/worktable.json` 的 `hooks`，按 `order` 排序。
+- AI 只做三件事：核对每条 Hook 的原话与转写一致；把 `anchor` 的近似时间换算成候选切点；指出明显问题（截半句、缺主语、只有判决没有对象）。
+- `anchor_status` 为 `stale` 或 `unmatched` 的条目必须先跟 Park 确认再往下走；`match: "fuzzy"` 的条目要把匹配到的原话回读给 Park 确认。
+- `analysis/hook-candidates.json` 由 `worktable.json` 派生，不手写第二份真值。
+- Park 批准最终句子和顺序。
+- 工作台空着（Park 没填）时才退回 AI 提名，并在 `process-log.md` 写明原因。
 - 在 `project.json` 中冻结 Product A/B 共用的 media、audio、caption-style 和 caption-layout preset ID。
 - Hook 放到开头后，正文原位置保持不变。
 
@@ -205,6 +250,8 @@ Product A 与 Product B 使用相同的画幅、FPS、编码、色彩空间、�
 
 ### Step 7：Hook 精确截取
 
+- 批准的 Hook 来自 `analysis/worktable.json` 的 `hooks`（`hook-candidates.json` 是它的派生视图，不是第二份真值）。
+- `anchor.start_hint` / `end_hint` 只是**起始搜索窗口**，不是切点。它由字幕块插值而来，必须逐条听过首尾后重新定位。
 - 对批准的 Hook 逐条听首尾。
 - 时间不可靠时，只对相关窗口做逐词校准。
 - 分别导出无字幕、无 B-roll、无动效的独立 Hook 片段。
@@ -263,6 +310,15 @@ Product A 与 Product B 使用相同的画幅、FPS、编码、色彩空间、�
 视觉覆盖率按 Product B 中 B-roll、截图、图表、Illustration、透明动效和全屏动画区间的时间并集计算，重叠只计一次；Hook、人脸原画面、字幕、BGM 和 SFX 不计入。默认目标为 30%–40%，但不得为了达标添加无意义画面；超出范围时在 spec table 写明原因并随本阶段一起批准。
 
 B-roll 优先使用本人真实素材；外部素材必须记录来源、关闭原声，并且不能用来证明素材本身无法证明的事实。
+
+**`worktable.json` 的 `visual_notes` 是 Step 11 的必读输入，不是参考资料。** Park 在 Preparation 阶段已经用大白话写下了他自己的视觉设计，那是他的判断，不是灵感素材。`video-shotcraft` 必须逐条回应，不许静默忽略：
+
+- 每条 note 在 `visual-plan.json` 里都要有对应的 `disposition`：`采纳` / `调整` / `拒绝`；
+- `调整` 和 `拒绝` 必须写 `disposition_reason`，说明为什么专业判断压过 Park 的原意；
+- spec table 必须逐条显示 note 编号、Park 的原话描述和 disposition，让 H2 审批时一眼看见哪几条被改了、为什么；
+- `anchor_status` 为 `stale` 的 note 先跟 Park 对齐锚点再处理。
+
+Park 的 note 覆盖不到的段落，`video-shotcraft` 照常自主决定。
 
 先由 `visual-plan.json` 自动生成可读的 spec table；只有用户批准后才允许进入正式渲染并继续 Step 13。此阶段只做工作检查，不生成独立正式 QA 文件。
 
@@ -362,6 +418,12 @@ project/     可编辑视觉工程
   `Cloud→Claude` 这类替换会静默失效。先加中英空格，再做替换。
 - **JPEG 中间帧产生 `yuvj420p`** —— 平台重编码时可能整体偏移对比度。
 - **Hook 只有判决没有对象** —— 观众代入不了。
+- **工作台导出后留在下载目录** —— `worktable.json` 不放回 `analysis/`，
+  Step 5 和 Step 11 就各自去猜 Park 想要什么，等于白填。
+- **拿工作台的 `start_hint` 直接切 Hook** —— 它是字幕块插值出来的近似值，
+  和「拿字幕块时间当词时间去切」是同一个坑。
+- **`visual_notes` 被"参考"掉** —— 不写 disposition 就等于礼貌地忽略，
+  Park 的那一遍设计白做。
 - **生成了文件就写成完成。**
 - **只写“冻结字幕样式”却没有 preset。** —— Agent 会在圆角黑底、白字描边和全宽 Banner 之间临场猜测；必须读取版本化 preset，并在 QA 对照 ID。
 

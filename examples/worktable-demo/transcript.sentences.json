@@ -1,0 +1,88 @@
+{
+  "schema": "park-video-transcript/v1",
+  "project": "worktable-demo",
+  "source_srt": "source.srt",
+  "text_source": "corrected.txt",
+  "generated_at": "2026-09-08T10:21:44+08:00",
+  "timing_note": "start_hint / end_hint 由 SRT 字幕块线性插值，是近似值；Step 7 必须重新精确定位。",
+  "check": {
+    "srt_chars": 219,
+    "text_chars": 217,
+    "delta": -2,
+    "tolerance": 3,
+    "similarity": 0.9954,
+    "problems": []
+  },
+  "transcript": [
+    {
+      "id": "s001",
+      "text": "大家好，今天我想聊一个很多人都搞错的问题。",
+      "start_hint": 0.0,
+      "end_hint": 4.2,
+      "timing": "approximate_from_srt_block"
+    },
+    {
+      "id": "s002",
+      "text": "为什么你的内容明明质量不差，却没有人看？",
+      "start_hint": 4.68,
+      "end_hint": 9.0,
+      "timing": "approximate_from_srt_block"
+    },
+    {
+      "id": "s003",
+      "text": "我先说结论：问题不在产品，在于你根本没有把它拍出来。",
+      "start_hint": 9.0,
+      "end_hint": 14.5,
+      "timing": "approximate_from_srt_block"
+    },
+    {
+      "id": "s004",
+      "text": "我自己过去三个月写了六十一篇东西，但是只发了零条视频。",
+      "start_hint": 14.5,
+      "end_hint": 20.0,
+      "timing": "approximate_from_srt_block"
+    },
+    {
+      "id": "s005",
+      "text": "这个数字第一次摆在我面前的时候，我是有点被吓到的。",
+      "start_hint": 20.0,
+      "end_hint": 26.3,
+      "timing": "approximate_from_srt_block"
+    },
+    {
+      "id": "s006",
+      "text": "因为它说明，我的瓶颈根本不在选题，也不在写作。",
+      "start_hint": 26.3,
+      "end_hint": 32.0,
+      "timing": "approximate_from_srt_block"
+    },
+    {
+      "id": "s007",
+      "text": "第二个误区是，大家总觉得要先把系统做完美再开始。",
+      "start_hint": 32.0,
+      "end_hint": 37.8,
+      "timing": "approximate_from_srt_block"
+    },
+    {
+      "id": "s008",
+      "text": "但是完美的系统如果没有观众，它就是一个昂贵的玩具。",
+      "start_hint": 37.8,
+      "end_hint": 43.0,
+      "timing": "approximate_from_srt_block"
+    },
+    {
+      "id": "s009",
+      "text": "所以我给自己定了一条规矩：七天不上镜的东西就不做。",
+      "start_hint": 43.0,
+      "end_hint": 49.5,
+      "timing": "approximate_from_srt_block"
+    },
+    {
+      "id": "s010",
+      "text": "这条规矩救了我很多时间，也帮我砍掉了三个项目。",
+      "start_hint": 49.5,
+      "end_hint": 55.0,
+      "timing": "approximate_from_srt_block"
+    }
+  ]
+}
