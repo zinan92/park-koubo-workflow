@@ -1,6 +1,6 @@
 # 口播视频 Workflow（Talking-Head Video Editing & Motion Workflow）
 
-状态：v2.8
+状态：v2.9
 最后更新：2026-09-09
 适用范围：Park 的口播视频剪辑、Hook、字幕、B-roll、动效、BGM、SFX 与最终交付
 
@@ -322,7 +322,11 @@ B-roll 优先使用本人真实素材；外部素材必须记录来源、关闭�
 
 Park 的 note 覆盖不到的段落，`video-shotcraft` 照常自主决定。
 
-先通过 `visual-spec` 结构与数值检查，再由独立 Claude Code / Codex CLI 审核规格，保存 `qa/visual-spec.json`。修复全部问题后由当前 JSON 自动生成可读 spec table，`present-spec` 通过后交 H2。用户批准准确快照后，经 `run --gate visual-render` 才允许正式渲染。CLI 缺失、超时、无法验证或失败都不得降级为自评通过。独立规格 QA 是自动质量关，不增加第四个人工审批门。
+先通过 `visual-spec` 结构与数值检查，由独立 reviewer 审核文字规格，保存 `qa/visual-spec.json`。然后按 [visual-preview.md](references/visual-preview.md) 为每一处制作嵌入真实画面的静帧，代表性动效制作带原声、正常速度的完整短片。H2 前允许这些有限预览渲染，禁止以“未批准”为由只给文字，也不提前批量做整片。
+
+独立审核者实际查看所有预览、对照原画面与 ShotCraft 参考，检查必要性、构图、节奏与完成度，记录 `qa/visual-preview.json`。`present-spec` 通过后给 Park 看图片/短片并按编号修改；长文字规格折叠为制作附件。默认右侧 notes 动效、实时人脸保留。只有批准当前画面快照后，经 `run --gate visual-render` 才允许正式制作。
+
+文字 CLI QA 不能代替视觉预览 QA；缺视频查看能力不能声称完整看过动态样片。独立 QA 不增加第四个人工审批门。变化较大的帧/样片需重审；已批准的 Hook 和母版不重做。
 
 ### Step 12：正文声音轨道
 

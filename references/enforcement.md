@@ -37,11 +37,13 @@ Hash with `python3 scripts/workflow_guard.py hash <file>`. Paths are relative to
 | hook-prefill | `prompt`, `transcript`, `candidates`; exact quote and reason, versioned prompt hash |
 | hook-cut | `worktable`, `transcript`, `cut_plan`, `timing_evidence`, `source_media`; H1 and verified boundaries |
 | visual-spec | `plan`, `worktable`, `transcript`, `shotcraft_skill`, `gallery`, per-card `card:ID` and `demo:ID`; structural/data checks only |
-| present-spec | visual-spec plus current independent `qa/visual-spec.json`; ready for H2, not approved |
-| visual-render | present-spec plus matching H2 approval; spec inputs also include `picture_lock` and `body_media` |
+| present-spec | visual-spec plus verified Picture Lock/body, current independent spec review, per-point composite previews and independent `qa/visual-preview.json`; image-first H2, not approved |
+| visual-render | present-spec plus H2 matching the combined spec/preview digest; spec inputs also include `picture_lock` and `body_media` |
 | delivery | visual-render plus delivery inputs `video`, `product_a`, `product_b`, `qa_a`, `qa_b`, `qa_final`, `frames` and independent `qa/render.json` |
 
 These are targeted guards around fragile handoffs, not machine validation of all fourteen steps. Preserve all earlier media/preset/timeline checks. Never use a stage's `pass` to imply a different gate passed.
+
+v2.9: [visual-preview.md](visual-preview.md) adds mandatory image evidence for each visual point and selected motion samples. Limited pre-H2 preview rendering is allowed. H2/delivery use the combined spec+preview digest; a text-only CLI review alone no longer passes present-spec. The legacy digest description below applies to projects with no visual shots; for visual projects use the combined digest at H2 and as `spec` in the delivery digest.
 
 ```bash
 python3 scripts/workflow_guard.py check <project> --gate visual-spec
@@ -97,7 +99,7 @@ Both review types require `status`, `findings`, `reviewed_ids`, `checks` (`seman
 
 Rendered review is deliberately NOT done by the text-only spec runner. Use an independent multimodal reviewer with actual final media, each shot's enter/reveal/hold/exit frames, approved plan, accurate card/demo, reference samples and numeric measurements. Record frame-number evidence. `frames` JSON binds `video_sha256` and `shots` keyed by ID, each phase a `{path,sha256,frame}`. Quantitative shots additionally require `measured_charts`, one measured chart per planned stage. Widths are normalized coordinates measured from the actual rendered frame, not copied from the plan; include the corresponding frame reference in each measurement. Each contains exactly one stage using the chart schema. The independent reviewer checks that the measurements describe the image. QA A/B/Final artifacts retain their existing requirements and must have `status: pass`.
 
-The render review digest is `digest({spec: visual-spec digest, delivery: delivery-stage digest})` using the guard's canonical JSON helper. The reviewer records it; it is NOT an approval token. H1 digest is `digest({worktable: worktable file SHA256})`; H2 digest is the visual-spec stage digest emitted by check. Approval files `approvals/H1.json` and `approvals/H2.json` contain `actor: Park`, `decision: approved`, `input_digest`, exact `message` and source `message_ref`. Only record an actual user approval; no generator auto-approves. H1 binds selection/order; subsequent cut-boundary corrections need QA A, not automatic reapproval of the same wording. H2 binds all spec inputs, so any edit invalidates its review and approval. Final H3 still belongs to Park after delivery QA.
+The render review digest is `digest({spec: H2 digest, delivery: delivery-stage digest})` using the guard's canonical JSON helper. The reviewer records it; it is NOT an approval token. H1 digest is `digest({worktable: worktable file SHA256})`; H2 digest is the value emitted by `check present-spec`: combined spec/preview digest for visual projects, spec digest when there are no visual shots. Approval files `approvals/H1.json` and `approvals/H2.json` contain `actor: Park`, `decision: approved`, `input_digest`, exact `message` and source `message_ref`. Only record an actual user approval; no generator auto-approves. H1 binds selection/order; subsequent cut-boundary corrections need QA A, not automatic reapproval of the same wording. H2 binds all spec and preview inputs, so any edit invalidates its review and approval. Final H3 still belongs to Park after delivery QA.
 
 ## Tool hooks: optional host integration
 

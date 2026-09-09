@@ -4,6 +4,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import struct
 import unittest
 from unittest.mock import patch
 
@@ -60,6 +61,8 @@ class Gates(unittest.TestCase):
     def review(self, name, fp):
         answer = {'status': 'pass', 'findings': [], 'reviewed_ids': ['V1'],
                   'checks': {key: {'status': 'pass', 'evidence': 'V1 spec/frame inspection fixture'} for key in ('semantic', 'motion', 'timing', 'sources')}}
+        if name == 'visual-preview':
+            answer['checks'].update({key: {'status': 'pass', 'evidence': 'fixture image comparison'} for key in ('usefulness', 'composition', 'pacing', 'reference_quality')})
         qa = self.p / 'qa'
         qa.mkdir(exist_ok=True)
         raw = qa / (name + '-raw.json')
@@ -67,9 +70,31 @@ class Gates(unittest.TestCase):
         report = dict(answer, input_digest=fp, reviewer_session='independent', raw_response={'path': str(raw.relative_to(self.p)), 'sha256': file_hash(raw)})
         path = qa / (name + '.json')
         path.write_text(json.dumps(report))
+        if name == 'visual-spec':
+            self.preview(fp)
         return path
 
+    def preview(self, fp):
+        for name in ('original', 'composite'):
+            f = self.p / (name + '.png')
+            f.write_bytes(b'\x89PNG\r\n\x1a\n' + struct.pack('>I', 13) + b'IHDR' + struct.pack('>II', 1440, 1080) + name.encode())
+            self.manifest['stages'].setdefault('visual-preview', {'inputs': {}})['inputs'][name] = {'path': f.name, 'sha256': file_hash(f)}
+        self.put('visual-preview', 'implementation', 'fixture-render-code')
+        index = {'schema': 'park-visual-preview/v1', 'spec_digest': fp,
+                 'body_sha256': self.manifest['stages']['visual-spec']['inputs']['body_media']['sha256'],
+                 'implementation_inputs': ['implementation'],
+                 'layout': {'mode': 'notes-only', 'canvas': [1440,1080], 'overlay_rect': [540,20,880,1040], 'face_rect': [0,0,530,1080], 'face_live': True},
+                 'shots': {'V1': {'reason_to_add': 'makes numerical comparison visible', 'comparisons': [{'time': 5, 'original': 'original', 'composite': 'composite'}],
+                                  'motion': False, 'last_change_sec': 6}}}
+        self.put('visual-preview', 'index', index)
+        self.save()
+        full = digest({'spec': fp, 'preview': Guard(self.p).fingerprint('visual-preview')})
+        self.review('visual-preview', full)
+        return index
+
     def approve(self, name, fp):
+        if name == 'H2':
+            fp = self.check('present-spec')
         directory = self.p / 'approvals'
         directory.mkdir(exist_ok=True)
         (directory / (name + '.json')).write_text(json.dumps({'actor': 'Park', 'decision': 'approved', 'input_digest': fp,
@@ -234,6 +259,7 @@ class Gates(unittest.TestCase):
         fp = self.check()
         self.review('visual-spec', fp)
         self.approve('H2', fp)
+        fp = self.check('present-spec')
         for media, qa in [('product_a', 'qa_a'), ('product_b', 'qa_b'), ('video', 'qa_final')]:
             path = self.put('delivery', media, media + ' media')
             self.put('delivery', qa, {'status': 'pass', 'video_sha256': file_hash(path)})
@@ -275,7 +301,6 @@ class Gates(unittest.TestCase):
         del self.manifest['stages']['visual-spec']['inputs']['picture_lock']
         fp = self.check()
         self.review('visual-spec', fp)
-        self.approve('H2', fp)
         with self.assertRaises(Blocked): self.check('visual-render')
 
     def test_duplicate_reviewer_status_blocks_both_providers(self):
