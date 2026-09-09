@@ -207,6 +207,7 @@ def cmd_html(args):
         "generated_at": doc.get("generated_at"),
         "transcript": doc["transcript"],
         "hook_origin": args.hook_origin,
+        "visual_preview_url": Path(args.visual_preview).resolve().as_uri() if args.visual_preview else None,
     }, ensure_ascii=False)
     payload = payload.replace("</", "<\\/")  # never close the script tag early
     out = Path(args.out)
@@ -233,6 +234,7 @@ def main():
     h.add_argument("--project")
     h.add_argument("--hook-origin", choices=("manual", "ai-prefill"), default="manual",
                    help="Preserve nomination provenance in worktable exports")
+    h.add_argument("--visual-preview", help="Path to the current image-first H2 preview page")
     h.add_argument("--template")
     h.set_defaults(func=cmd_html)
 

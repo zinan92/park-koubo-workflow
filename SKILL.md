@@ -92,7 +92,11 @@ Freeze the Product A/B shared media, audio, caption-style, and caption-layout pr
 
 Park's `visual_notes` are required input, not inspiration. Give every note a `disposition` of 采纳/调整/拒绝 in `visual-plan.json`, with a `disposition_reason` for the latter two, and show note number, Park's own wording, and disposition as rows in the spec table so H2 reveals exactly what was overridden. Decide freely wherever Park left no note.
 
-After Picture Lock, finalize `visual-plan.json` and generate its readable spec table. Independent spec QA and `present-spec` must pass before presenting H2. Show the table, planned coverage, source/provenance, and any exceptions. Wait for approval before rendering any production visual layer. Bind approval to the exact input digest; edits invalidate it and the independent review. Freeze the approved snapshot; record later changes in `changes.md`.
+After Picture Lock, use [references/visual-preview.md](references/visual-preview.md). H2 is image-first: every visual point needs actual in-context composite stills beside its original frame; selected representative motions need normal-speed clips with speech and their full settled tail. Keep executable spec text for the agent, not as the user's main review burden. Generate a preview gallery and link it from the existing worktable.
+
+Pre-H2 preview rendering of limited stills/clips is authorized and required; whole production rendering remains blocked. Independent spec QA AND independent visual-preview/design QA must pass before `present-spec`. Show the actual images/clips, not just a source-video player or card names. Bind H2 to spec plus preview assets, layout and implementation hashes; edits invalidate affected evidence and approval. Preserve approved snapshots and changes.md.
+
+Default overlays occupy the right notes region with the live face retained; measure the actual rectangles. Full-frame/custom composition needs an explicit user choice. Evaluate added value against the unmodified footage and normal-speed pacing; do not extend static tails simply to fill a spoken paragraph or coverage target.
 
 ### H3 — Final Approval after Step 14
 

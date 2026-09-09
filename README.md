@@ -61,6 +61,8 @@ Stage A 的交付物是 `analysis/worktable.html`——一张 Park 用来选 Hoo
 
 ### 可执行关卡与独立审核
 
+**v2.9 的 H2 改为看画面：** 每处提供原视频与真实合成静帧，代表性动效另给正常速度短片。用户按编号审核图片、删除或修改，不需要读参数想象效果。[预览协议](references/visual-preview.md) 同时约束右侧布局、原画面对照和静止尾段；静帧不是成片动效的冒充物。
+
 [证据关卡使用说明](references/enforcement.md) 定义了 prefill、Hook 切片、视觉规格、正式渲染与交付的检查入口。缺 ShotCraft card/demo 依据、审核失败或审批哈希过期时返回非零，受检命令不会启动。
 
 ```bash

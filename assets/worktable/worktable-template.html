@@ -136,6 +136,7 @@ code.path{font:11.5px/1 var(--mono);background:#f0efe9;border:1px solid var(--li
     <button class="ghost" id="btnReset">清空草稿</button>
     <button id="btnCopy">复制 JSON</button>
     <button class="primary" id="btnExport">导出 worktable.json</button>
+    <a id="visualPreviewLink" hidden target="_blank" rel="noopener">看视觉预览（H2）</a>
   </header>
 
   <main>
@@ -175,6 +176,7 @@ code.path{font:11.5px/1 var(--mono);background:#f0efe9;border:1px solid var(--li
 
 <script>
 const DATA = /*__WORKTABLE_DATA__*/null;
+if(DATA.visual_preview_url){const a=document.getElementById('visualPreviewLink');a.href=DATA.visual_preview_url;a.hidden=false;}
 
 /* ---------------- state ---------------- */
 const KEY = 'park-worktable::' + (DATA.project || 'default');

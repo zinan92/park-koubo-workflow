@@ -231,15 +231,22 @@ class Guard:
         if gate == 'visual-spec':
             return fp  # Structural check: NOT an independent review or H2 approval.
         self.review('visual-spec', fp, ids)
-        if gate == 'present-spec':
-            return fp
-        self.approval('H2', fp)
+        if ids:
+            from visual_preview import validate
+            fp, _, _ = validate(self, fp)
+            preview_review = self.review('visual-preview', fp, ids)
+            for key in ('usefulness', 'composition', 'pacing', 'reference_quality'):
+                check = preview_review['checks'].get(key, {})
+                require(check.get('status') == 'pass' and nonempty(check.get('evidence')), f'visual-preview: {key} unverified')
         spec_inputs = self.inputs('visual-spec')
         require('picture_lock' in spec_inputs and 'body_media' in spec_inputs, 'Picture Lock and body media required for production')
         lock = read_json(spec_inputs['picture_lock'])
         plan = read_json(spec_inputs['plan'])
         require(lock.get('status') == 'pass' and lock.get('timeline_id') == plan['timeline_id']
                 and lock.get('media_sha256') == file_hash(spec_inputs['body_media']), 'Picture Lock is missing/stale or on another timeline')
+        if gate == 'present-spec':
+            return fp
+        self.approval('H2', fp)
         if gate == 'visual-render':
             return fp
         p = self.inputs('delivery')
