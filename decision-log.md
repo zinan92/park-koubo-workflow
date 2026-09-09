@@ -1,5 +1,13 @@
 # Decisions
 
+## 2026-09-09 · Publication package
+
+- The repaired v2 video was accepted; do not redo its rough cut/Hook based on v1 failures. Extend Step 14 to title, cover, speed variant and authorized platform drafts.
+- Keep current-video face provenance separate from an older cover's style reference. Title and cover changes invalidate old draft receipts.
+- `release.json` is the publication truth; derive status HTML from it and the per-platform receipt. A user's publication report is not platform verification.
+- Independent review is about separate context and actual evidence, not mandatory Claude-versus-Codex branding. Record native reviewer use honestly when a CLI is unavailable.
+- The new release checker is not proof of face identity, perceptual quality or server-side media hashing. It checks actual file hashes, PNG dimensions and ffprobe durations plus evidence consistency. Visual/audio review remains necessary.
+
 ## 2026-09-08 · Evidence gates (#3)
 
 - Introduce a portable guarded production entrypoint, not regex matching of `ffmpeg` commands. Hook invocation names vary by host; aliases/scripts can bypass a command-name regex. Do not silently install global hooks.

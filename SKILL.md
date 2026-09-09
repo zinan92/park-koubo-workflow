@@ -40,7 +40,9 @@ Read [references/enforcement.md](references/enforcement.md) before prefill, Hook
 
 When Park asks for prefill, read [prompts/hook-prefill.md](prompts/hook-prefill.md) and use Video ShotCraft for visual suggestions **before filling the worktable**. Preserve add/edit/delete/order controls and existing user edits. Record candidate rationale, source prompt/card/demo hashes and input timeline. Prefill is a proposal, never H1/H2 approval. Do not postpone ShotCraft until after the prefill is approved.
 
-Run independent spec review with `scripts/review_visual_spec.py <project> --provider claude` (or `codex`) before presenting H2. Fix findings and repeat; do not replace a failed/unavailable independent reviewer with self-review. The automated CLI runner reviews text specs only; final rendered QA requires an independent reviewer that actually inspects the media and frames. Keep these two claims separate.
+Use a fresh independent reviewer before presenting H2: an available native Codex agent or `scripts/review_visual_spec.py <project> --provider claude` (or `codex`). Record which actually ran, its session and evidence-bound result. Fix findings and repeat; never replace independent review with self-review. CLI authentication/version failures are not QA passes, but an explicitly recorded native independent review is a valid alternative. The automated CLI runner reviews text specs only; final rendered QA requires an independent reviewer that actually inspects the media and frames.
+
+On entry, record the actual skill checkout path, revision and guard hash. Do not equate GitHub merge with updating a shared installed skill, or retroactively assert a frozen old project used a newer guard. Resume validated work and migrate only affected handoffs.
 
 ## Five stages
 
@@ -72,6 +74,8 @@ python3 scripts/build_worktable.py html subtitles/transcript.sentences.json \
 
 In the worktable Park picks Hooks (up to 5, an upper bound rather than a quota) and writes plain-language visual notes anchored to numbered markers in the transcript. Export lands in the browser's download folder; copy it to `analysis/worktable.json` and confirm the path with Park before Step 5. Every time in it is `start_hint`/`end_hint` — interpolated inside SRT cue blocks, positional only, never a cut point.
 
+Before handing over a prefilled worktable, check cold-load display, saved-draft migration, add/edit/delete/order and exported rows against the intended JSON. Preserve user edits and back up migrations. DOM tests, actual browser rendering and user screenshots are different evidence; if browser access is blocked, report that limitation rather than claiming the displayed prefill was verified.
+
 ## Three normal human gates
 
 Stop only at these normal approval gates. Present the exact artifact under review and one clear decision request.
@@ -93,6 +97,8 @@ After Picture Lock, finalize `visual-plan.json` and generate its readable spec t
 ### H3 — Final Approval after Step 14
 
 After QA Final passes, present the final video, duration/spec summary, QA result, and known limitations. Wait for the user to accept the deliverable.
+
+If publication preparation is requested, continue Step 14 using [references/release.md](references/release.md) and [prompts/title-cover.md](prompts/title-cover.md): title, current-video portrait source, landscape/portrait covers, requested speed variant and platform draft. Run `scripts/release_guard.py check` before upload and `check-draft` after page verification. Honor draft-only instructions. Keep title/cover/video versions together; update an already-authorized platform draft after edits rather than stopping at local files. Publication is not implied by upload authorization.
 
 Normal routing does not request approval between these gates. A missing credential, inaccessible source, destructive scope change, or proposed deletion of a shooting/production instruction is an exceptional blocker, not a fourth routine gate.
 
@@ -209,3 +215,5 @@ Use `pending`, `in_progress`, `blocked`, `approved`, `pass`, or `skipped` consis
 ## Response contract
 
 While running, report only the current stage, canonical Step number, current Gate if active, completed evidence, and next action. At a gate, lead with the artifact and decision required. At completion, lead with the final video path/link and the three QA results.
+
+Report decoding, muted/accelerated playback, real-time visual review, listening and independent semantic review separately. Do not label a rejected version current or stale preparation notes as production state. When release.json exists, generate release-summary.html and link it from README rather than keeping competing status prose.
