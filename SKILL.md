@@ -108,6 +108,8 @@ Normal routing does not request approval between these gates. A missing credenti
 
 ## Step 11: Video ShotCraft adapter
 
+**Execution contract: all graphics/illustrations/animations must use ShotCraft's React/Remotion implementation, not reference-only rewrites.** Read [references/remotion-execution.md](references/remotion-execution.md) before implementation. Declare `engine: react-remotion` in each graphic shot during prefill, reuse the exact demo TSX, read the installed Remotion implementation skill, and build the registered Composition project. Run `remotion_execution.py check` before batch implementation, then use its fixed `still`/`render` commands for previews and production. Canvas/Pillow/HyperFrames substitutions and `openBrowser`-only usage do not satisfy this contract. Dependencies are installed by the agent; never silently switch engines. FFmpeg may assemble real Remotion outputs with footage/audio/captions. Visual approval does not authorize an engine change.
+
 Use this adapter early for requested visual prefill; those suggestions remain provisional until Step 10 Picture Lock and renewed timeline checks. Formal H2 and production rendering remain in Step 11. Do not use it to add visuals to Product A Hook.
 
 Use `video-shotcraft` as the visual director for the complete Product B visual track. It chooses among:
@@ -118,7 +120,7 @@ Use `video-shotcraft` as the visual director for the complete Product B visual t
 - screenshots or screen recordings;
 - charts or Illustration;
 - transparent overlays;
-- full-screen Remotion or HyperFrames animation.
+- React/Remotion animation adapted to the approved layout.
 
 The parent workflow owns editorial structure, subtitles, audio, and final assembly. Under this adapter, collapse Video ShotCraft's internal creative approvals into the single H2 spec-table gate. Do not let its standalone product-promo workflow add extra approval rounds or take ownership of Hook, BGM/SFX, captions, or concatenate.
 

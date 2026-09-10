@@ -1,7 +1,7 @@
 # 口播视频 Workflow（Talking-Head Video Editing & Motion Workflow）
 
-状态：v2.9
-最后更新：2026-09-09
+状态：v2.10
+最后更新：2026-09-10
 适用范围：Park 的口播视频剪辑、Hook、字幕、B-roll、动效、BGM、SFX 与最终交付
 
 ## 1. 目标
@@ -40,7 +40,7 @@ Master Timeline
 │
 ├── Visual
 │   ├── V2：B-roll
-│   └── V3：截图 / 图表 / Screen Demo / Illustration / Remotion / HyperFrames
+│   └── V3：真实截图 / Screen Demo / React + Remotion 图表、插图、动效
 │
 ├── Caption
 │   └── V4：字幕，最后烧录，永远位于最上层
@@ -304,7 +304,7 @@ Park 点「导出 worktable.json」后文件会落在浏览器下载目录。Age
 加入 B-roll
 加入截图或屏幕录制
 加入图表或 Illustration
-加入 Remotion / HyperFrames 动效
+按 ShotCraft 准确 demo 实现 React / Remotion 动效
 ```
 
 生成 `part-b-body/visual-plan.json` 作为可执行的镜头合同；选择纯 A-roll 时也以空 shots 和逐条 note 回应记录决定。每个镜头写明时间范围、用途、素材来源、元素运动、准确 recipe/demo 与适配理由、数值语义合同，以及 enter、reveal、hold、exit；不要求固定视觉间隔，也不设置“每 20 秒一个视觉点”。机器字段见 `references/enforcement.md`。
@@ -322,7 +322,7 @@ B-roll 优先使用本人真实素材；外部素材必须记录来源、关闭�
 
 Park 的 note 覆盖不到的段落，`video-shotcraft` 照常自主决定。
 
-先通过 `visual-spec` 结构与数值检查，由独立 reviewer 审核文字规格，保存 `qa/visual-spec.json`。然后按 [visual-preview.md](references/visual-preview.md) 为每一处制作嵌入真实画面的静帧，代表性动效制作带原声、正常速度的完整短片。H2 前允许这些有限预览渲染，禁止以“未批准”为由只给文字，也不提前批量做整片。
+先通过 `visual-spec` 结构与数值检查，由独立 reviewer 审核文字规格，保存 `qa/visual-spec.json`。写动画前落实 [React/Remotion 执行合同](references/remotion-execution.md)：逐点声明引擎、复用准确 demo、检查注册 Composition 工程。预览和正式动画必须经过固定 Remotion runner，不能自行改用 Canvas。然后按 [visual-preview.md](references/visual-preview.md) 为每一处制作嵌入真实画面的静帧，代表性动效制作带原声、正常速度的完整短片。H2 前允许这些有限预览渲染，禁止以“未批准”为由只给文字，也不提前批量做整片。
 
 独立审核者实际查看所有预览、对照原画面与 ShotCraft 参考，检查必要性、构图、节奏与完成度，记录 `qa/visual-preview.json`。`present-spec` 通过后给 Park 看图片/短片并按编号修改；长文字规格折叠为制作附件。默认右侧 notes 动效、实时人脸保留。只有批准当前画面快照后，经 `run --gate visual-render` 才允许正式制作。
 
@@ -459,7 +459,7 @@ project/     可编辑视觉工程
 - 某个简单实现有参考价值时，可以阅读后直接重写当前所需版本。
 - `video-shotcraft` 是 Step 11 的视觉总导演，统一规划 B-roll、截图、图表、Illustration 和动画；不把具体卡片清单固化进 Workflow，也不接管 Hook、字幕、声音或最终合并。
 - 多镜头时优先把每个镜头做成独立透明视觉层，便于单独修改和重渲；这是实现策略，不是强制步骤。
-- FFmpeg、Remotion、HyperFrames 或其他工具由 AI 根据当前任务直接调用。
+- 图形、插图、动画固定使用 React / Remotion；通过受检 runner 执行。FFmpeg 负责剪辑和合成，不替换动画引擎。AI 自主安装依赖、处理实现细节，不能自行改变这项制作要求。
 
 ## 11. 最小过程日志
 

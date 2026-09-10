@@ -73,13 +73,13 @@ class PreviewTests(unittest.TestCase):
 
     def test_sample_must_include_static_tail(self):
         self.f.put('visual-preview', 'clip', 'fixture clip')
-        self.index['shots']['V1']['sample'] = {'input': 'clip', 'start': 2, 'end': 6, 'reason': 'representative chart'}
+        self.index['shots']['V1']['sample'] = {'input': 'clip', 'start': 2, 'end': 6, 'reason': 'representative chart', 'remotion_inputs': ['remotion-output']}
         with self.assertRaisesRegex(Blocked, 'whole shot'): self.validate()
 
     def test_normal_speed_sample_duration_checked(self):
         self.f.put('visual-preview', 'clip', 'fixture clip')
         self.index['shots']['V1']['motion'] = True
-        self.index['shots']['V1']['sample'] = {'input': 'clip', 'start': 2, 'end': 9, 'reason': 'representative chart'}
+        self.index['shots']['V1']['sample'] = {'input': 'clip', 'start': 2, 'end': 9, 'reason': 'representative chart', 'remotion_inputs': ['remotion-output']}
         with patch('visual_preview.clip_duration', return_value=3):
             with self.assertRaisesRegex(Blocked, 'normal-speed'): self.validate()
         with patch('visual_preview.clip_duration', return_value=7):

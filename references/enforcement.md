@@ -103,6 +103,8 @@ The render review digest is `digest({spec: H2 digest, delivery: delivery-stage d
 
 ## Tool hooks: optional host integration
 
+v2.10 的正常动画执行入口见 [remotion-execution.md](remotion-execution.md)。`visual-spec` 在规划时拒绝缺失/替换的引擎；`remotion_execution.py check` 检查准确 demo 与 React 工程；固定 `still/render` 真正执行 Remotion CLI。preview/delivery 验证对应阶段的输出回执和逐点合成引用，不能用 `openBrowser` 代替注册 Composition。下面的通用 `workflow_guard run` 只适合父工作流的剪辑/合成任务，不得用它另开动画渲染路径。
+
 The production wrapper is portable across Codex and Claude. Do not ship a command-name regex as a security boundary: Python scripts, aliases and alternate tools can invoke FFmpeg without spelling its name in the tool call.
 
 Claude supports synchronous `PreToolUse` hooks returning exit 2 to block a tool call ([official reference](https://code.claude.com/docs/en/hooks)). A host-owned integration can invoke the gate for a configured production action. It must identify the project and action explicitly, reject unknown production actions, and preserve read/edit/QA commands needed to fix failures. Do not globally block all Bash while waiting for H2. Hook installation and trust are host-specific; this repository does not silently alter global settings, and it does not claim a Claude hook also runs in Codex.
