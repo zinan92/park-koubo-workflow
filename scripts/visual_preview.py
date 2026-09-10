@@ -22,6 +22,8 @@ def clip_duration(path):
 
 
 def validate(guard, spec_digest):
+    from remotion_execution import receipts
+    rendered_layers = receipts(guard, 'visual-preview', 'preview')
     paths = guard.inputs('visual-preview')
     index = read_json(paths['index'])
     spec_paths = guard.inputs('visual-spec')
@@ -50,6 +52,8 @@ def validate(guard, spec_digest):
         require(item['comparisons'], 'text-only H2 is not reviewable')
         seen = set()
         for pair in item['comparisons']:
+            if sid in rendered_layers:
+                require(set(pair.get('remotion_inputs', [])) & rendered_layers[sid], 'composite must identify its actual Remotion layer input')
             require(number(pair['time']) and s['start'] <= pair['time'] < s['end'], 'preview frame outside shot')
             require(pair['time'] not in seen, 'duplicate preview timestamp')
             seen.add(pair['time'])
@@ -62,6 +66,8 @@ def validate(guard, spec_digest):
         require(tail <= 3 or nonempty(item.get('tail_reason')), 'more than 3 seconds without information change needs reading/context rationale')
         if item.get('sample'):
             sample = item['sample']
+            if sid in rendered_layers:
+                require(set(sample.get('remotion_inputs', [])) & rendered_layers[sid], 'sample must identify its actual Remotion layer input')
             require(sample['input'] in paths and nonempty(sample['reason']), 'sample file/selection rationale missing')
             require(0 <= sample['start'] <= s['start'] and s['end'] <= sample['end'] <= plan['duration'], 'sample must show the whole shot including its settled tail')
             duration = clip_duration(paths[sample['input']])

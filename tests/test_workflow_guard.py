@@ -25,7 +25,7 @@ class Gates(unittest.TestCase):
                      'note_responses': [{'note_id': 'n1', 'disposition': '采纳'}],
                      'shots': [{'id': 'V1', 'note_ids': ['n1'], 'start': 2, 'end': 9,
                                 'quote': '我的80，别人的95。', 'purpose': '比较能力', 'source': '口述示意',
-                                'visual_type': '图形与动效', 'motion': 'bars grow from common origin; labels track values; hold',
+                                'visual_type': '图形与动效', 'engine': 'react-remotion', 'motion': 'bars grow from common origin; labels track values; hold',
                                 'acceptance': 'measure shared baseline and every stage',
                                 'cue_points': {'enter': 2, 'reveal': 3, 'hold': 5, 'exit': 8},
                                 'recipe': {'mode': 'card', 'name': 'demo', 'style': 'one', 'adaptation': 'retain growth timing; shared axis'},
@@ -45,7 +45,7 @@ class Gates(unittest.TestCase):
     def put(self, stage, name, value, filename=None):
         path = self.p / (filename or (stage + '-' + name.replace(':', '-') + '.json'))
         path.write_text(value if isinstance(value, str) else json.dumps(value, ensure_ascii=False))
-        self.manifest['stages'].setdefault(stage, {'inputs': {}})['inputs'][name] = {'path': path.name, 'sha256': file_hash(path)}
+        self.manifest['stages'].setdefault(stage, {'inputs': {}})['inputs'][name] = {'path': str(path.relative_to(self.p)), 'sha256': file_hash(path)}
         return path
 
     def save(self):
@@ -75,6 +75,7 @@ class Gates(unittest.TestCase):
         return path
 
     def preview(self, fp):
+        self.remotion_fixture('visual-preview', 'preview')
         for name in ('original', 'composite'):
             f = self.p / (name + '.png')
             f.write_bytes(b'\x89PNG\r\n\x1a\n' + struct.pack('>I', 13) + b'IHDR' + struct.pack('>II', 1440, 1080) + name.encode())
@@ -84,13 +85,27 @@ class Gates(unittest.TestCase):
                  'body_sha256': self.manifest['stages']['visual-spec']['inputs']['body_media']['sha256'],
                  'implementation_inputs': ['implementation'],
                  'layout': {'mode': 'notes-only', 'canvas': [1440,1080], 'overlay_rect': [540,20,880,1040], 'face_rect': [0,0,530,1080], 'face_live': True},
-                 'shots': {'V1': {'reason_to_add': 'makes numerical comparison visible', 'comparisons': [{'time': 5, 'original': 'original', 'composite': 'composite'}],
+                 'shots': {'V1': {'reason_to_add': 'makes numerical comparison visible', 'comparisons': [{'time': 5, 'original': 'original', 'composite': 'composite', 'remotion_inputs': ['remotion-output']}],
                                   'motion': False, 'last_change_sec': 6}}}
         self.put('visual-preview', 'index', index)
         self.save()
         full = digest({'spec': fp, 'preview': Guard(self.p).fingerprint('visual-preview')})
         self.review('visual-preview', full)
         return index
+
+    def remotion_fixture(self, stage, purpose):
+        from remotion_execution import contract
+        (self.p / 'runtime').mkdir(exist_ok=True)
+        self.put('visual-implementation', 'package', {'dependencies': {k: '4.0.484' for k in ('react', 'react-dom', 'remotion', '@remotion/cli')}}, 'runtime/package.json')
+        self.put('visual-implementation', 'lock', {'lockfileVersion': 3})
+        self.put('visual-implementation', 'entry', 'registerRoot(Root)', 'runtime/index.ts')
+        self.put('visual-implementation', 'component', 'export const Shot = () => <div/>', 'runtime/Shot.tsx')
+        self.put('visual-implementation', 'contract', {'engine': 'react-remotion', 'shots': {'V1': {'composition': 'Shot', 'duration_frames': 210, 'sources': ['component'], 'preserved': 'demo motion', 'adaptations': 'right notes', 'demo_sha256': self.manifest['stages']['visual-spec']['inputs']['demo:V1']['sha256']}}})
+        self.save()
+        fp = contract(Guard(self.p))[0]
+        output = self.put(stage, 'remotion-output', 'fixture only, not a real render')
+        self.put(stage, 'receipt', {'schema': 'park-remotion-render/v1', 'engine': 'react-remotion', 'input_digest': fp, 'shot': 'V1', 'purpose': purpose, 'operation': 'render', 'composition': 'Shot', 'output_input': 'remotion-output', 'output_sha256': file_hash(output)})
+        self.put(stage, 'remotion_receipts', {'V1': ['receipt']})
 
     def approve(self, name, fp):
         if name == 'H2':
@@ -260,6 +275,7 @@ class Gates(unittest.TestCase):
         self.review('visual-spec', fp)
         self.approve('H2', fp)
         fp = self.check('present-spec')
+        self.remotion_fixture('delivery', 'production')
         for media, qa in [('product_a', 'qa_a'), ('product_b', 'qa_b'), ('video', 'qa_final')]:
             path = self.put('delivery', media, media + ' media')
             self.put('delivery', qa, {'status': 'pass', 'video_sha256': file_hash(path)})
@@ -269,7 +285,7 @@ class Gates(unittest.TestCase):
         measured = copy.deepcopy(self.chart)
         measured['frame'] = ref
         frames = {'video_sha256': self.manifest['stages']['delivery']['inputs']['video']['sha256'],
-                  'shots': {'V1': {**{phase: ref for phase in ('enter', 'reveal', 'hold', 'exit')}, 'measured_charts': [measured]}}}
+                  'shots': {'V1': {**{phase: ref for phase in ('enter', 'reveal', 'hold', 'exit')}, 'measured_charts': [measured], 'remotion_inputs': ['remotion-output']}}}
         self.put('delivery', 'frames', frames)
         self.save()
         full = digest({'spec': fp, 'delivery': Guard(self.p).fingerprint('delivery')})

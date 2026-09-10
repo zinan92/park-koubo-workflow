@@ -2,7 +2,7 @@
 
 ## 现在在哪里
 
-v2.9 将 H2 改为逐点真实合成静帧 + 代表性原速短片，新增独立设计/节奏审核并绑定预览哈希。保留 v2.8 发布交付检查。
+v2.10 将 React / Remotion 设为 ShotCraft 图形制作的必经路径：规划声明、工程检查、固定渲染入口和输出回执。保留 v2.9 的逐点真实合成预览、独立设计审核及 v2.8 发布交付检查。
 规格支持独立 Claude/Codex CLI 审核；成片必须另外做实际媒体审核。
 这是受检执行入口，不是全局 Agent 沙箱。开发合同：[issue #3](https://github.com/zinan92/park-koubo-workflow/issues/3)。
 

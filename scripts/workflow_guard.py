@@ -190,6 +190,8 @@ class Guard:
         for s in shots:
             require(0 <= s['start'] < s['end'] <= plan['duration'], 'shot outside body timeline')
             require(s['visual_type'] in ('B-roll', '图形与动效'), 'production shot type must be specified')
+            if s['visual_type'] == '图形与动效':
+                require(s.get('engine') == 'react-remotion', 'plan must commit to React/Remotion before implementation')
             for field in ('quote', 'purpose', 'source', 'motion', 'acceptance'):
                 require(nonempty(s.get(field)), f'{s["id"]}: missing {field}')
             require(s['quote'] in full_text, 'visual quote not found in transcript')
@@ -250,6 +252,8 @@ class Guard:
         if gate == 'visual-render':
             return fp
         p = self.inputs('delivery')
+        from remotion_execution import receipts
+        rendered_layers = receipts(self, 'delivery', 'production')
         require(all(k in p for k in ('video', 'product_a', 'product_b', 'qa_a', 'qa_b', 'qa_final', 'frames')), 'delivery evidence incomplete')
         for key, media in (('qa_a', 'product_a'), ('qa_b', 'product_b'), ('qa_final', 'video')):
             qa = read_json(p[key])
@@ -260,6 +264,8 @@ class Guard:
         plan = read_json(self.inputs('visual-spec')['plan'])
         quantitative = {s['id']: s['chart'] for s in plan['shots'] if s['quantitative']}
         for shot_id, shot in frames['shots'].items():
+            if shot_id in rendered_layers:
+                require(set(shot.get('remotion_inputs', [])) & rendered_layers[shot_id], 'final shot must identify actual Remotion layer input')
             for phase in ('enter', 'reveal', 'hold', 'exit'):
                 ref = shot[phase]
                 require(file_hash(self.root / ref['path']) == ref['sha256'], 'frame missing/stale')
