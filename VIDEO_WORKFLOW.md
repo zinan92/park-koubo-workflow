@@ -1,6 +1,8 @@
 # 口播视频 Workflow（Talking-Head Video Editing & Motion Workflow）
 
-状态：v2.10
+状态：v2.11
+
+视觉预填默认执行 [选型与画面预填协议](prompts/visual-prefill.md)：口播关系 → 图形结构 → ShotCraft 动作 → React/Remotion 真实预览 → 独立表达/输出 QA。空工作台的新视频主动预填 Hook 与视觉，尊重用户已有选择和明确不预填的指令。每个点先记录 design，再实施；早期规划草稿不算 prefill 完成。`visual-prefill` 检查允许在当前粗剪时间线上交候选画面，Picture Lock 后更新证据并走原 H2。
 最后更新：2026-09-10
 适用范围：Park 的口播视频剪辑、Hook、字幕、B-roll、动效、BGM、SFX 与最终交付
 

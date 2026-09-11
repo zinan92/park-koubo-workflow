@@ -64,6 +64,37 @@ def alias(row, canonical, exported):
 
 def check_chart(chart):
     """A common linear axis and one data source for labels and widths."""
+    kind = chart.get('kind', 'bars')
+    require(nonempty(chart.get('source')) and nonempty(chart.get('meaning')), 'chart provenance/meaning missing')
+    if kind == 'unit-conservation':
+        value, total = chart.get('unit_value'), chart.get('total')
+        require(number(value) and value > 0 and number(total) and total > 0, 'invalid conserved unit value/total')
+        stages = chart.get('stages')
+        require(isinstance(stages, list) and len(stages) >= 2, 'conservation needs before/after stages')
+        identities = None
+        for stage in stages:
+            groups = stage.get('groups')
+            require(isinstance(groups, list) and groups, 'conservation groups missing')
+            ids = []
+            for group in groups:
+                members = group.get('unit_ids')
+                require(isinstance(members, list) and members and all(nonempty(i) for i in members), 'unit IDs must be explicit')
+                amount = group.get('value')
+                require(number(amount) and math.isclose(amount, len(members) * value, rel_tol=0, abs_tol=.000001), 'group amount differs from conserved units')
+                require(str(group.get('label')) == str(amount), 'unit group label differs from value')
+                ids.extend(members)
+            require(len(ids) == len(set(ids)), 'duplicated conserved unit ID')
+            require(math.isclose(len(ids) * value, total, rel_tol=0, abs_tol=.000001), 'conserved total changed')
+            require(identities is None or identities == set(ids), 'conserved unit identities changed')
+            identities = set(ids)
+        return
+    if kind == 'custom':
+        # Structural provenance only; independent media QA must verify the mapping.
+        require(isinstance(chart.get('data'), (dict, list)) and bool(chart['data']), 'custom quantitative data missing')
+        require(nonempty(chart.get('geometry_mapping')), 'custom data-to-geometry mapping missing')
+        require(isinstance(chart.get('invariants'), list) and chart['invariants'] and all(nonempty(x) for x in chart['invariants']), 'custom quantitative invariants missing')
+        return
+    require(kind == 'bars', 'unknown quantitative chart kind')
     lo, hi = chart['domain']
     width = chart['plot_width']
     require(all(number(x) for x in (lo, hi, width)) and lo == 0 and hi > lo and width > 0,
@@ -169,6 +200,7 @@ class Guard:
         require('shotcraft_skill' in p and 'gallery' in p, 'ShotCraft skill and Gallery evidence required')
         skill = p['shotcraft_skill'].read_text()
         require('video-shotcraft' in skill and 'demo' in skill, 'invalid ShotCraft skill evidence')
+        require('design_prompt' in p and file_hash(p['design_prompt']) == file_hash(ROOT / 'prompts/visual-prefill.md'), 'use versioned visual design prompt before prefill')
         plan = read_json(p['plan'])
         require(plan.get('timeline_id') and number(plan.get('duration')) and plan['duration'] > 0, 'plan timeline/duration missing')
         notes = read_json(p['worktable']).get('visual_notes')
@@ -187,7 +219,14 @@ class Guard:
         ids = [s['id'] for s in shots]
         require(len(ids) == len(set(ids)), 'duplicate shot IDs')
         intervals = []
+        forms = []
         for s in shots:
+            design = s.get('design', {})
+            for field in ('takeaway', 'relation', 'form', 'reason', 'alternative', 'alternative_reason', 'motion_meaning'):
+                require(nonempty(design.get(field)), f'{s["id"]}: missing design.{field}')
+            require(type(design.get('animated')) is bool, 'design.animated must be explicit')
+            require(type(design.get('state_change')) is bool, 'design.state_change must be explicit')
+            forms.append(design['form'].strip().casefold())
             require(0 <= s['start'] < s['end'] <= plan['duration'], 'shot outside body timeline')
             require(s['visual_type'] in ('B-roll', '图形与动效'), 'production shot type must be specified')
             if s['visual_type'] == '图形与动效':
@@ -213,6 +252,7 @@ class Guard:
                 require(s.get('chart'), 'quantitative shot requires chart data')
                 check_chart(s['chart'])
             intervals.append((s['start'], s['end']))
+        require(len(forms) == len(set(forms)) or nonempty(plan.get('form_reuse_reason')), 'repeated visual forms need semantic rationale')
         total, right = 0, 0
         for a, b in sorted(intervals):
             total += max(0, b - max(a, right))
@@ -237,9 +277,11 @@ class Guard:
             from visual_preview import validate
             fp, _, _ = validate(self, fp)
             preview_review = self.review('visual-preview', fp, ids)
-            for key in ('usefulness', 'composition', 'pacing', 'reference_quality'):
+            for key in ('usefulness', 'composition', 'pacing', 'reference_quality', 'semantic_selection', 'output_integrity'):
                 check = preview_review['checks'].get(key, {})
                 require(check.get('status') == 'pass' and nonempty(check.get('evidence')), f'visual-preview: {key} unverified')
+        if gate == 'visual-prefill':
+            return fp  # Provisional reviewed visuals, never H2 or production authorization.
         spec_inputs = self.inputs('visual-spec')
         require('picture_lock' in spec_inputs and 'body_media' in spec_inputs, 'Picture Lock and body media required for production')
         lock = read_json(spec_inputs['picture_lock'])
@@ -274,23 +316,39 @@ class Guard:
                 require(shot.get('measured_charts'), 'quantitative shot needs actual rendered measurements')
                 expected = quantitative[shot_id]
                 measured = shot['measured_charts']
-                require(len(measured) == len(expected['stages']), 'measure every data stage, not only last frame')
-                for measurement, expected_stage in zip(measured, expected['stages']):
+                kind = expected.get('kind', 'bars')
+                if kind == 'custom':
+                    require(len(measured) == 1, 'custom measurement must consolidate declared invariants')
+                else:
+                    require(len(measured) == len(expected['stages']), 'measure every data stage, not only last frame')
+                for i, measurement in enumerate(measured):
                     ref = measurement['frame']
                     require(type(ref.get('frame')) is int and ref['frame'] >= 0 and
                             file_hash(self.root / ref['path']) == ref['sha256'], 'chart measurement frame missing/stale')
-                    require(measurement['domain'] == expected['domain'], 'rendered axis differs from spec')
-                    require(len(measurement['stages']) == 1 and
-                            [b['value'] for b in measurement['stages'][0]['bars']] == [b['value'] for b in expected_stage['bars']],
-                            'rendered data differs from spec')
-            for measured in shot.get('measured_charts', []):
-                check_chart(measured)
+                    require(measurement.get('kind', 'bars') == kind, 'measurement kind differs from plan')
+                    if kind == 'bars':
+                        require(measurement['domain'] == expected['domain'], 'rendered axis differs from spec')
+                        require(len(measurement['stages']) == 1 and
+                                [b['value'] for b in measurement['stages'][0]['bars']] == [b['value'] for b in expected['stages'][i]['bars']],
+                                'rendered data differs from spec')
+                        check_chart(measurement)
+                    elif kind == 'unit-conservation':
+                        require(len(measurement['stages']) == 1 and measurement['stages'][0] == expected['stages'][i], 'rendered unit groups differ from spec')
+                        require(measurement['unit_value'] == expected['unit_value'] and measurement['total'] == expected['total'], 'rendered unit value/total differs from spec')
+                    else:
+                        check_chart(measurement)
+                        require(all(measurement[k] == expected[k] for k in ('data', 'geometry_mapping', 'invariants')), 'custom measured contract differs from plan')
+                        observations = measurement.get('observations', {})
+                        require(set(observations) == set(expected['invariants']) and all(isinstance(v, dict) and v.get('status') == 'pass' and nonempty(v.get('evidence')) for v in observations.values()), 'custom quantitative invariant observations missing')
+                if kind == 'unit-conservation':
+                    combined = dict(expected, stages=[m['stages'][0] for m in measured])
+                    check_chart(combined)
         full = digest({'spec': fp, 'delivery': self.fingerprint('delivery')})
         self.review('render', full, ids)
         return full
 
 
-GATES = ('hook-prefill', 'hook-cut', 'visual-spec', 'present-spec', 'visual-render', 'delivery')
+GATES = ('hook-prefill', 'hook-cut', 'visual-spec', 'visual-prefill', 'present-spec', 'visual-render', 'delivery')
 
 
 def main():

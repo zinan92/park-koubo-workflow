@@ -38,6 +38,8 @@ Never restart a passed step merely because a new Agent session began. Never skip
 
 Read [references/enforcement.md](references/enforcement.md) before prefill, Hook extraction, visual planning/rendering or delivery. Use `scripts/workflow_guard.py` at those handoffs; production commands go through its `run` entrypoint. Exit 2 means stop that action, fix the evidence and rerun. There is no agent-authorized force/pass override. These are targeted evidence checks, not a sandbox or proof that all fourteen steps were executed.
 
+For every new video with an empty worktable, default to Hook and visual prefill; preserve existing user edits and explicit opt-outs. Before visual planning or prefill, read [prompts/visual-prefill.md](prompts/visual-prefill.md). Decide meaning → structure → motion before choosing a card. Each shot must carry its `design` decision; prefill completion includes actual images and independent QA, not only suggested text. Run `check --gate visual-prefill` before handing over provisional visuals; this does not approve H2 or require Picture Lock.
+
 When Park asks for prefill, read [prompts/hook-prefill.md](prompts/hook-prefill.md) and use Video ShotCraft for visual suggestions **before filling the worktable**. Preserve add/edit/delete/order controls and existing user edits. Record candidate rationale, source prompt/card/demo hashes and input timeline. Prefill is a proposal, never H1/H2 approval. Do not postpone ShotCraft until after the prefill is approved.
 
 Use a fresh independent reviewer before presenting H2: an available native Codex agent or `scripts/review_visual_spec.py <project> --provider claude` (or `codex`). Record which actually ran, its session and evidence-bound result. Fix findings and repeat; never replace independent review with self-review. CLI authentication/version failures are not QA passes, but an explicitly recorded native independent review is a valid alternative. The automated CLI runner reviews text specs only; final rendered QA requires an independent reviewer that actually inspects the media and frames.
@@ -130,7 +132,7 @@ Make `part-b-body/visual-plan.json` the executable visual truth. For each shot i
 
 - `id`, `start`, `end`, and matching transcript;
 - `source_note` plus `disposition` and `disposition_reason` when the shot answers a worktable note;
-- communication purpose and `visual_type`;
+- communication purpose, `visual_type`, and the `design` fields specified in `prompts/visual-prefill.md`;
 - treatment plus asset/source/provenance;
 - `cue_points.enter`, `reveal`, `hold`, and `exit`;
 - implementation recipe/tool reference;

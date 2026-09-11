@@ -61,6 +61,8 @@ Stage A 的交付物是 `analysis/worktable.html`——一张 Park 用来选 Hoo
 
 ### 可执行关卡与独立审核
 
+**v2.11 默认画面预填：** 先判断口播关系，再选图形与动作；每点记录选型理由和替代方案，交真实截图及代表样片。独立 QA 检查表达与实际输出，`visual-prefill` 入口检查候选交付，修改后旧证据失效。[选型协议](prompts/visual-prefill.md)。
+
 **v2.10 必须实际使用 React / Remotion：** ShotCraft 的准确 demo 要落实为注册 Composition，不能只作参考后用 Canvas 重写。[执行合同](references/remotion-execution.md) 在规划、预览渲染和正式制作入口检查工程与输出回执。
 
 **H2 看画面：** 每处提供原视频与真实合成静帧，代表性动效另给正常速度短片。用户按编号审核图片、删除或修改，不需要读参数想象效果。[预览协议](references/visual-preview.md) 同时约束右侧布局、原画面对照和静止尾段；静帧不是成片动效的冒充物。

@@ -27,6 +27,17 @@ class PreviewTests(unittest.TestCase):
         self.save()
         return validate(Guard(self.f.p), self.fp)
 
+    def enable_motion_plan(self):
+        self.f.plan['shots'][0]['design']['animated'] = True
+        self.f.replan()
+        self.fp = self.f.check()
+        self.index['spec_digest'] = self.fp
+        self.f.remotion_fixture('visual-preview', 'preview')
+
+    def test_motion_cannot_be_downgraded_in_preview(self):
+        self.enable_motion_plan()
+        with self.assertRaisesRegex(Blocked, 'match planned'): self.validate()
+
     def test_text_only_plan_cannot_reach_h2(self):
         del self.f.manifest['stages']['visual-preview']
         self.f.save()
@@ -37,6 +48,14 @@ class PreviewTests(unittest.TestCase):
         fp = self.f.check()
         self.f.review('visual-spec', fp)
         with self.assertRaisesRegex(Blocked, 'Picture Lock'): self.f.check('present-spec')
+
+    def test_before_after_design_needs_two_states(self):
+        self.f.plan['shots'][0]['design']['state_change'] = True
+        self.f.replan()
+        self.fp = self.f.check()
+        self.index['spec_digest'] = self.fp
+        self.f.remotion_fixture('visual-preview', 'preview')
+        with self.assertRaisesRegex(Blocked, 'before-reveal'): self.validate()
 
     def test_snapshot_survives_source_overwrite(self):
         _, _, paths = self.validate()
@@ -68,6 +87,7 @@ class PreviewTests(unittest.TestCase):
         with self.assertRaisesRegex(Blocked, 'reading/context rationale'): self.validate()
 
     def test_motion_needs_actual_sample(self):
+        self.enable_motion_plan()
         self.index['shots']['V1']['motion'] = True
         with self.assertRaisesRegex(Blocked, 'needs a sample'): self.validate()
 
@@ -78,6 +98,7 @@ class PreviewTests(unittest.TestCase):
 
     def test_normal_speed_sample_duration_checked(self):
         self.f.put('visual-preview', 'clip', 'fixture clip')
+        self.enable_motion_plan()
         self.index['shots']['V1']['motion'] = True
         self.index['shots']['V1']['sample'] = {'input': 'clip', 'start': 2, 'end': 9, 'reason': 'representative chart', 'remotion_inputs': ['remotion-output']}
         with patch('visual_preview.clip_duration', return_value=3):

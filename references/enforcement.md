@@ -110,3 +110,17 @@ The production wrapper is portable across Codex and Claude. Do not ship a comman
 Claude supports synchronous `PreToolUse` hooks returning exit 2 to block a tool call ([official reference](https://code.claude.com/docs/en/hooks)). A host-owned integration can invoke the gate for a configured production action. It must identify the project and action explicitly, reject unknown production actions, and preserve read/edit/QA commands needed to fix failures. Do not globally block all Bash while waiting for H2. Hook installation and trust are host-specific; this repository does not silently alter global settings, and it does not claim a Claude hook also runs in Codex.
 
 For enforceable deployment, use a host-owned action dispatcher/approval store outside the producer's write scope. Until configured, report the protection accurately as **guarded entrypoint + independent review**, not universal prevention of bypass.
+
+## v2.11 语义选型与视觉预填
+
+`visual-spec.inputs.design_prompt` 必须引用当前 `prompts/visual-prefill.md` 并带哈希。每个 shot 的 `design` 包含非空 `takeaway/relation/form/reason/alternative/alternative_reason/motion_meaning` 和布尔 `state_change/animated`。重复 form 时 plan 需 `form_reuse_reason`。全部字段随 plan 哈希进入失效链。
+
+`check --gate visual-prefill` 执行结构、独立 spec QA、真实预览和独立 preview QA，但在 Picture Lock/H2 前返回，只可交候选；不允许用作生产 run 的 gate。preview QA 新增 `semantic_selection` 和 `output_integrity` 两项。H2、生产与交付同样要求它们。先读选型 prompt，再做图；校验字段存在不证明设计正确。
+
+迁移仅针对新视频和正在重设计的视觉点：补充真实选型，重新出受影响样片并复核；不得给旧项目伪造 prompt 使用记录/QA/批准。已冻结项目继续保留原版，不重做已批准 Hook。
+
+定量合同 `chart.kind`：缺省或 `bars` 沿用同尺度柱形校验；`unit-conservation` 使用 `source/meaning/unit_value/total/stages`，各 stage 的 groups 项含 `unit_ids`（非空字符串数组）、`value`、`label`。检查 ID 不重复且跨阶段不变、每组金额=单位数×单位值、总量不变。
+
+曲线等其他定量形式可显式 `kind: custom`，必须有非空 `data`（对象或数组）、`geometry_mapping` 与 `invariants` 字符串数组，以及 source/meaning。该分支只检查可审查合同完整性，不证明几何正确；独立输出 QA 必须按实际数据、坐标与所有揭示阶段核验。不能标成 quantitative=false 绕过数值检查，也不能伪装成无关柱图。
+
+交付 `measured_charts` 按 kind 校验：bars 保持每揭示阶段一项；unit-conservation 同样每阶段一项（各含该阶段单个 stages、unit_value、total、kind 和带哈希/帧号的 frame），整组重建后验证守恒并逐阶段与计划比对；custom 使用一份合并测量，带 frame 及与计划一致的 data/geometry_mapping/invariants，并逐个 invariant 在 observations 中记录 status:pass 和具体 evidence。自定义映射仍须独立媒体审查，不从这些自报字段推断已经观看。

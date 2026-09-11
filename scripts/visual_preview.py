@@ -60,7 +60,11 @@ def validate(guard, spec_digest):
             for key in ('original', 'composite'):
                 require(pair[key] in paths and png_size(paths[pair[key]]) == (cw, ch), 'preview must be a full-composition PNG at review canvas size')
             require(file_hash(paths[pair['original']]) != file_hash(paths[pair['composite']]), 'original frame alone is not a visual preview')
+        if s['design']['state_change']:
+            require(len(seen) >= 2 and min(seen) < s['cue_points']['reveal'] and max(seen) >= s['cue_points']['hold'], 'state change needs before-reveal and settled composite frames')
+            require(len({file_hash(paths[x['composite']]) for x in item['comparisons']}) >= 2, 'state change cannot reuse the same composite')
         require(type(item['motion']) is bool, 'declare whether the visual moves')
+        require(item['motion'] == s['design']['animated'], 'preview motion must match planned design.animated')
         require(number(item['last_change_sec']) and s['start'] <= item['last_change_sec'] < s['end'], 'last information change outside shot')
         tail = s['end'] - item['last_change_sec']
         require(tail <= 3 or nonempty(item.get('tail_reason')), 'more than 3 seconds without information change needs reading/context rationale')
@@ -76,6 +80,8 @@ def validate(guard, spec_digest):
     for sid, item in index['shots'].items():
         if item['motion'] and sid not in samples:
             require(item.get('represented_by') in samples and nonempty(item.get('representation_reason')), 'moving visual needs a sample or justified representative sample')
+            representative = shots[item['represented_by']]['design']
+            require(all(shots[sid]['design'][k] == representative[k] for k in ('relation', 'form')), 'representative sample must match visual relation and form')
     return digest({'spec': spec_digest, 'preview': guard.fingerprint('visual-preview')}), index, paths
 
 
@@ -95,8 +101,10 @@ def page(guard, index, paths, fingerprint):
         sample = item.get('sample')
         motion = (f'<video controls preload="metadata" src="{media(sample["input"])}"></video><p>正常速度样片，包含原声与完整停留段。</p>' if sample else
                   f'<p>此处为静帧构图预览。{esc("动效节奏参考 " + item["represented_by"] if item["motion"] else "此视觉不含动画。")}</p>')
+        design = s['design']
+        detail = '<details><summary>选型依据</summary>' + ''.join(f'<p>{esc(k)}：{esc(str(design[k]))}</p>' for k in ('takeaway', 'relation', 'form', 'reason', 'alternative', 'alternative_reason', 'motion_meaning')) + '</details>'
         cards.append(f'<article data-id="{esc(sid, quote=True)}"><h2>{esc(sid)} · {s["start"]:.1f}–{s["end"]:.1f}s</h2><p>{esc(s["quote"])}</p>'
-                     + ''.join(figures) + motion + f'<p>{esc(item["reason_to_add"])}</p><label>反馈（可在工作台编辑，或直接告诉 Agent 编号）'
+                     + ''.join(figures) + motion + detail + f'<p>{esc(item["reason_to_add"])}</p><label>反馈（可在工作台编辑，或直接告诉 Agent 编号）'
                      '<textarea placeholder="保留 / 删除 / 修改：…"></textarea></label></article>')
     return '<!doctype html><meta charset="utf-8"><title>H2 视觉预览</title><style>body{font:18px system-ui;background:#f4f4f0;margin:32px;color:#20221f}article{background:white;padding:24px;margin:24px 0;border-radius:12px}.pair{display:flex;gap:16px}figure{margin:0;flex:1;min-width:0}img,video{width:100%;max-height:650px;object-fit:contain}textarea{display:block;width:95%;min-height:70px}small{overflow-wrap:anywhere}</style>' \
         + '<h1>逐点看画面，再决定</h1><p>每一处都有原画面与预填效果。静帧不代表动画已经完成；代表性短片用于看运动和节奏。此页不自动批准。</p>' \

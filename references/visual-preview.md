@@ -4,6 +4,8 @@ Hook 继续审核原话与顺序。Visual Spec 的用户入口改成画面，不
 
 制作前先执行 [React/Remotion 合同](remotion-execution.md)：每个图形镜头的预览必须使用固定 runner 生成的真实 Remotion 产物，并在 visual-preview 输入中登记输出和回执。预览生成器会先验证回执，缺少时不能用 Canvas 截图替代。下面的 JSON 索引描述合成画面，不能替代渲染回执。
 
+开始前读 [视觉选型 prompt](../prompts/visual-prefill.md)。`design.state_change=true` 的镜头需至少两张对照图，覆盖 reveal 前与 hold 后；同一图不能冒充两个状态。动效样片只能代表相同 form/relation 的镜头，仍需说明节奏和复杂度为何可比。
+
 ## 制作与审核顺序
 
 1. 先判断这一处是否值得增加视觉。对比保留原页面/原录屏与增加图形两种方案；原画面更清楚就不加，不能为了覆盖率占满时长。
@@ -21,6 +23,8 @@ Hook 继续审核原话与顺序。Visual Spec 的用户入口改成画面，不
 
 除了 semantic/motion/timing/sources，`qa/visual-preview.json` 必须逐项提供实际观察依据：
 
+- `semantic_selection`：逐点核验 takeaway、关系、形式、替代方案和动作信息增量，检查同质化是否有语义理由。
+- `output_integrity`：真实帧/时间证据验证数值、方向、遮挡、有效字号以及中途漏绘；不能仅看终态。
 - `usefulness`：相比原画面是否更清楚；复杂 HTML 被缩成不可读窄条应退回原画面。
 - `composition`：人脸保留、右侧信息层级、实际字号/留白和字幕关系是否合适。
 - `pacing`：完整段落有无空等和无信息变化的尾段；信息讲清后回到原画面，不靠循环动画制造“还在动”。
@@ -73,6 +77,6 @@ python3 scripts/build_worktable.py html <transcript.json> --visual-preview <revi
 
 预览页连同同名 `.assets` 文件夹保存素材副本；保留它们，不覆盖旧版本。反馈导出绑定当前指纹，回写前核对版本。预览页不替代工作台编辑器，也不会自动保存反馈或审批。向用户展示图片和短片本身，不用渲染脚本、长表格或“独立 QA 通过”当预览。
 
-`qa/visual-preview.json` 使用已有独立 review schema，`input_digest=digest({spec: spec_digest, preview: visual-preview stage digest})`，checked IDs 覆盖全部镜头，raw_response 与报告一致，reviewer_session 与 producer 不同。额外四个设计检查放在 checks 中。H2 与后续 delivery digest 使用这个组合指纹；文字 spec 的 CLI 审核依旧绑定原 spec_digest，**不自动生成预览 QA**。
+`qa/visual-preview.json` 使用已有独立 review schema，`input_digest=digest({spec: spec_digest, preview: visual-preview stage digest})`，checked IDs 覆盖全部镜头，raw_response 与报告一致，reviewer_session 与 producer 不同。额外六个设计/输出检查放在 checks 中。H2 与后续 delivery digest 使用这个组合指纹；文字 spec 的 CLI 审核依旧绑定原 spec_digest，**不自动生成预览 QA**。
 
 旧版只有文字 H2 的项目不能伪造新批准。已验收项目保留其冻结版本；正在重设计的镜头按新协议迁移，让 Park 审核真实预览。不因规则升级而重新粗剪或重做已批准的 Hook。

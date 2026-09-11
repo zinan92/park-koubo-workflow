@@ -25,7 +25,8 @@ class Gates(unittest.TestCase):
                      'note_responses': [{'note_id': 'n1', 'disposition': '采纳'}],
                      'shots': [{'id': 'V1', 'note_ids': ['n1'], 'start': 2, 'end': 9,
                                 'quote': '我的80，别人的95。', 'purpose': '比较能力', 'source': '口述示意',
-                                'visual_type': '图形与动效', 'engine': 'react-remotion', 'motion': 'bars grow from common origin; labels track values; hold',
+                                'visual_type': '图形与动效', 'engine': 'react-remotion', 'motion': 'static bars on a shared axis; no animation',
+                                'design': {'takeaway': 'compare 80 and 95', 'relation': 'quantity comparison', 'form': 'bars', 'reason': 'shared scale', 'alternative': 'text', 'alternative_reason': 'harder to compare magnitude', 'motion_meaning': 'reveal the compared values', 'state_change': False, 'animated': False},
                                 'acceptance': 'measure shared baseline and every stage',
                                 'cue_points': {'enter': 2, 'reveal': 3, 'hold': 5, 'exit': 8},
                                 'recipe': {'mode': 'card', 'name': 'demo', 'style': 'one', 'adaptation': 'retain growth timing; shared axis'},
@@ -34,6 +35,7 @@ class Gates(unittest.TestCase):
             'plan': self.plan, 'worktable': {'hooks': [], 'visual_notes': [{'id': 'n1'}]},
             'transcript': {'transcript': [{'id': 's1', 'text': '我的80，别人的95。'}]},
             'gallery': {'cards': [{'name': 'demo', 'styles': [{'key': 'one'}]}]},
+            'design_prompt': (ROOT / 'prompts/visual-prefill.md').read_text(),
             'shotcraft_skill': 'video-shotcraft exact demo source required',
             'card:V1': 'reference implementation: Demo.tsx', 'demo:V1': 'export const Demo = () => null;',
         }.items():
@@ -62,7 +64,7 @@ class Gates(unittest.TestCase):
         answer = {'status': 'pass', 'findings': [], 'reviewed_ids': ['V1'],
                   'checks': {key: {'status': 'pass', 'evidence': 'V1 spec/frame inspection fixture'} for key in ('semantic', 'motion', 'timing', 'sources')}}
         if name == 'visual-preview':
-            answer['checks'].update({key: {'status': 'pass', 'evidence': 'fixture image comparison'} for key in ('usefulness', 'composition', 'pacing', 'reference_quality')})
+            answer['checks'].update({key: {'status': 'pass', 'evidence': 'fixture image comparison'} for key in ('usefulness', 'composition', 'pacing', 'reference_quality', 'semantic_selection', 'output_integrity')})
         qa = self.p / 'qa'
         qa.mkdir(exist_ok=True)
         raw = qa / (name + '-raw.json')
@@ -119,6 +121,60 @@ class Gates(unittest.TestCase):
         self.check()
         with self.assertRaises(OSError):
             self.check('visual-render')
+
+    def test_unit_conservation_checks_identity_and_amount(self):
+        chart = {'kind': 'unit-conservation', 'source': 'spoken example', 'meaning': 'fixed total', 'unit_value': 50, 'total': 100,
+                 'stages': [{'groups': [{'unit_ids': ['a'], 'value': 50, 'label': '50'}, {'unit_ids': ['b'], 'value': 50, 'label': '50'}]},
+                            {'groups': [{'unit_ids': ['a', 'b'], 'value': 100, 'label': '100'}]}]}
+        check_chart(chart)
+        for bad_ids in (['a', 'a'], ['a', 'c'], ['a']):
+            bad = copy.deepcopy(chart)
+            bad['stages'][1]['groups'][0]['unit_ids'] = bad_ids
+            with self.subTest(ids=bad_ids), self.assertRaises(Blocked): check_chart(bad)
+
+    def test_repeated_form_needs_reason(self):
+        second = copy.deepcopy(self.plan['shots'][0])
+        second.update(id='V2', start=10, end=17, note_ids=[], cue_points={'enter':10,'reveal':11,'hold':13,'exit':16}, recipe={'mode':'custom','reason':'same quantity relation','implementation':'React/SVG'})
+        self.plan['shots'].append(second)
+        self.plan['coverage_exception'] = 'comparison study'
+        self.replan()
+        with self.assertRaisesRegex(Blocked, 'repeated visual forms'): self.check()
+        self.plan['form_reuse_reason'] = 'Both compare quantities on the same scale'
+        self.replan()
+        self.check()
+
+    def test_missing_semantic_preview_review_blocks_prefill(self):
+        self.review('visual-spec', self.check())
+        path = self.p / 'qa/visual-preview.json'
+        report = read_json(path)
+        del report['checks']['semantic_selection']
+        raw = self.p / report['raw_response']['path']
+        raw.write_text(json.dumps({k:report[k] for k in ('status','findings','reviewed_ids','checks')}))
+        report['raw_response']['sha256'] = file_hash(raw)
+        path.write_text(json.dumps(report))
+        with self.assertRaisesRegex(Blocked, 'semantic_selection'): self.check('visual-prefill')
+
+    def test_missing_design_rejected(self):
+        del self.plan['shots'][0]['design']
+        self.replan()
+        with self.assertRaisesRegex(Blocked, 'missing design'): self.check()
+
+    def test_unversioned_design_prompt_rejected(self):
+        self.put('visual-spec', 'design_prompt', 'generic suggestions')
+        with self.assertRaisesRegex(Blocked, 'versioned visual design'): self.check()
+
+    def test_visual_prefill_does_not_require_or_grant_h2(self):
+        del self.manifest['stages']['visual-spec']['inputs']['picture_lock']
+        fp = self.check()
+        self.review('visual-spec', fp)
+        self.check('visual-prefill')
+        with self.assertRaisesRegex(Blocked, 'Picture Lock'): self.check('visual-render')
+
+    def test_design_edit_invalidates_review(self):
+        self.review('visual-spec', self.check())
+        self.plan['shots'][0]['design']['form'] = 'matrix'
+        self.replan()
+        with self.assertRaisesRegex(Blocked, 'review stale'): self.check('visual-prefill')
 
     def test_missing_shotcraft(self):
         del self.manifest['stages']['visual-spec']['inputs']['shotcraft_skill']
@@ -270,7 +326,7 @@ class Gates(unittest.TestCase):
             self.assertEqual(review_visual_spec.main(), 0)
         self.check('present-spec')
 
-    def delivery(self):
+    def delivery(self, measurements=None):
         fp = self.check()
         self.review('visual-spec', fp)
         self.approve('H2', fp)
@@ -285,12 +341,35 @@ class Gates(unittest.TestCase):
         measured = copy.deepcopy(self.chart)
         measured['frame'] = ref
         frames = {'video_sha256': self.manifest['stages']['delivery']['inputs']['video']['sha256'],
-                  'shots': {'V1': {**{phase: ref for phase in ('enter', 'reveal', 'hold', 'exit')}, 'measured_charts': [measured], 'remotion_inputs': ['remotion-output']}}}
+                  'shots': {'V1': {**{phase: ref for phase in ('enter', 'reveal', 'hold', 'exit')}, 'measured_charts': measurements(ref) if measurements else [measured], 'remotion_inputs': ['remotion-output']}}}
         self.put('delivery', 'frames', frames)
         self.save()
         full = digest({'spec': fp, 'delivery': Guard(self.p).fingerprint('delivery')})
         self.review('render', full)
         return frames
+
+    def test_unit_chart_reaches_delivery_and_rejects_changed_group(self):
+        self.chart = {'kind':'unit-conservation','source':'spoken','meaning':'conserved','unit_value':50,'total':100,
+                      'stages':[{'groups':[{'unit_ids':['a'],'value':50,'label':'50'},{'unit_ids':['b'],'value':50,'label':'50'}]},
+                                {'groups':[{'unit_ids':['a','b'],'value':100,'label':'100'}]}]}
+        self.plan['shots'][0]['chart'] = self.chart
+        self.replan()
+        frames = self.delivery(lambda ref: [dict(self.chart, frame=dict(ref, frame=60+i), stages=[stage]) for i,stage in enumerate(self.chart['stages'])])
+        self.check('delivery')
+        frames['shots']['V1']['measured_charts'][1]['stages'][0]['groups'][0]['value'] = 120
+        self.put('delivery','frames',frames)
+        with self.assertRaisesRegex(Blocked, 'unit groups'): self.check('delivery')
+
+    def test_custom_chart_reaches_delivery_and_requires_observations(self):
+        self.chart = {'kind':'custom','source':'spoken relation','meaning':'illustrative curve','data':[0,1,2],
+                      'geometry_mapping':'x is sequence; y is provided value','invariants':['monotonic y']}
+        self.plan['shots'][0]['chart'] = self.chart
+        self.replan()
+        frames = self.delivery(lambda ref: [dict(self.chart, frame=ref, observations={'monotonic y':{'status':'pass','evidence':'frame fixture observations'}})])
+        self.check('delivery')
+        frames['shots']['V1']['measured_charts'][0]['observations'] = {}
+        self.put('delivery','frames',frames)
+        with self.assertRaisesRegex(Blocked, 'observations missing'): self.check('delivery')
 
     def test_delivery_current_evidence(self):
         self.delivery()
