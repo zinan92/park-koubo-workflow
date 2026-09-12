@@ -104,6 +104,8 @@ Default overlays occupy the right notes region with the live face retained; meas
 
 After QA Final passes, present the final video, duration/spec summary, QA result, and known limitations. Wait for the user to accept the deliverable.
 
+For Douyin publication preparation, load [references/douyin-cover.md](references/douyin-cover.md) and its bundled style images before cover generation. Default to the saved bold slanted headline/current-person-cutout style; title changes in publication preparation update both covers unless explicitly scoped to platform title only. Preserve current-video person provenance and record imagegen/style/thumbnail evidence.
+
 If publication preparation is requested, continue Step 14 using [references/release.md](references/release.md) and [prompts/title-cover.md](prompts/title-cover.md): title, current-video portrait source, landscape/portrait covers, requested speed variant and platform draft. Run `scripts/release_guard.py check` before upload and `check-draft` after page verification. Honor draft-only instructions. Keep title/cover/video versions together; update an already-authorized platform draft after edits rather than stopping at local files. Publication is not implied by upload authorization.
 
 Normal routing does not request approval between these gates. A missing credential, inaccessible source, destructive scope change, or proposed deletion of a shooting/production instruction is an exceptional blocker, not a fourth routine gate.

@@ -1,0 +1,44 @@
+{
+  "id": "park-douyin-bold-orange-v1",
+  "version": 1,
+  "references": {
+    "4:3": {
+      "path": "assets/covers/park-bold-orange-v1-4x3.png",
+      "sha256": "47766134fd695a6f795c3145f02e7987e0d85dc760483b63b410893995043322"
+    },
+    "3:4": {
+      "path": "assets/covers/park-bold-orange-v1-3x4.png",
+      "sha256": "0baf079a3ebff44a2389a9cf81f1b0047b9fbbc929c365845b7461bedf4f3436"
+    }
+  },
+  "origin": {
+    "project": "2026-09-11-hooks",
+    "source_revision": "cover-v3",
+    "selection_basis": "User requested the previous same cover style on 2026-09-11, then retained style and changed copy to 给每一个业务匹配一个 FDE. Style reference only; not a reusable person source."
+  },
+  "ratios": [
+    "4:3",
+    "3:4"
+  ],
+  "visual_rules": {
+    "background": "warm ivory with restrained texture",
+    "type": "very large heavy slanted condensed Chinese/Latin headline, black main text",
+    "accent": "orange-red key phrase and restrained brush underline; diagonal corner accents",
+    "landscape": "headline dominates left; current-video cutout person occupies right, no photo card",
+    "portrait": "headline dominates upper half; current-video cutout below, independently composed",
+    "avoid": [
+      "rounded photo cards",
+      "small AI时代 badges",
+      "decorative diagrams unrelated to headline",
+      "English subtitles or added copy",
+      "using the reference person as the next episode subject"
+    ]
+  },
+  "variables": [
+    "exact selected title",
+    "line breaks that preserve wording",
+    "one emphasis phrase",
+    "current-video person/frame"
+  ],
+  "reference_role": "style-only"
+}

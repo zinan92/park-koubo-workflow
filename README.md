@@ -1,5 +1,7 @@
 <div align="center">
 
+**v2.12 抖音封面：** 保存横竖品牌参考图、生成提示词规范和样式/缩略图检查；默认复用版式并替换本期人物，改标题联动两张封面。[封面协议](references/douyin-cover.md)。
+
 # Ask Park Video
 
 > *「你只管把口播录下来，Agent 必须知道下一步。」*

@@ -1,21 +1,91 @@
 {
   "schema": "park-release/v1",
   "title": "用户选定的标题",
-  "title_selection": {"title": "用户选定的标题", "message_ref": "实际用户选择消息"},
-  "recording": {"path": "source.mp4", "sha256": "REPLACE_WITH_SHA256"},
-  "master": {"path": "final/video.mp4", "sha256": "REPLACE_WITH_SHA256"},
-  "master_acceptance": {"video_sha256": "REPLACE_WITH_SHA256", "message_ref": "实际验收消息"},
-  "upload_video": {"path": "final/upload-1.5x.mp4", "sha256": "REPLACE_WITH_SHA256"},
+  "title_selection": {
+    "title": "用户选定的标题",
+    "message_ref": "实际用户选择消息"
+  },
+  "recording": {
+    "path": "source.mp4",
+    "sha256": "REPLACE_WITH_SHA256"
+  },
+  "master": {
+    "path": "final/video.mp4",
+    "sha256": "REPLACE_WITH_SHA256"
+  },
+  "master_acceptance": {
+    "video_sha256": "REPLACE_WITH_SHA256",
+    "message_ref": "实际验收消息"
+  },
+  "upload_video": {
+    "path": "final/upload-1.5x.mp4",
+    "sha256": "REPLACE_WITH_SHA256"
+  },
   "speed": 1.5,
   "speed_request_ref": "实际变速要求消息",
-  "upload_qa": {"path": "qa/upload-version.json", "sha256": "REPLACE_WITH_SHA256"},
-  "subject_frame_receipt": {"path": "final/covers/source-frame.json", "sha256": "REPLACE_WITH_SHA256"},
-  "required_cover_ratios": ["4:3", "3:4"],
+  "upload_qa": {
+    "path": "qa/upload-version.json",
+    "sha256": "REPLACE_WITH_SHA256"
+  },
+  "subject_frame_receipt": {
+    "path": "final/covers/source-frame.json",
+    "sha256": "REPLACE_WITH_SHA256"
+  },
+  "required_cover_ratios": [
+    "4:3",
+    "3:4"
+  ],
   "covers": [
-    {"ratio": "4:3", "title": "用户选定的标题", "subject_frame_sha256": "REPLACE_WITH_SHA256", "file": {"path": "final/covers/cover-4x3.png", "sha256": "REPLACE_WITH_SHA256"}, "qa": {"path": "qa/cover-4x3.json", "sha256": "REPLACE_WITH_SHA256"}},
-    {"ratio": "3:4", "title": "用户选定的标题", "subject_frame_sha256": "REPLACE_WITH_SHA256", "file": {"path": "final/covers/cover-3x4.png", "sha256": "REPLACE_WITH_SHA256"}, "qa": {"path": "qa/cover-3x4.json", "sha256": "REPLACE_WITH_SHA256"}}
+    {
+      "ratio": "4:3",
+      "title": "用户选定的标题",
+      "subject_frame_sha256": "REPLACE_WITH_SHA256",
+      "file": {
+        "path": "final/covers/cover-4x3.png",
+        "sha256": "REPLACE_WITH_SHA256"
+      },
+      "qa": {
+        "path": "qa/cover-4x3.json",
+        "sha256": "REPLACE_WITH_SHA256"
+      },
+      "generation_receipt": {
+        "path": "qa/cover-generation-4x3.json",
+        "sha256": "REPLACE_WITH_SHA256"
+      }
+    },
+    {
+      "ratio": "3:4",
+      "title": "用户选定的标题",
+      "subject_frame_sha256": "REPLACE_WITH_SHA256",
+      "file": {
+        "path": "final/covers/cover-3x4.png",
+        "sha256": "REPLACE_WITH_SHA256"
+      },
+      "qa": {
+        "path": "qa/cover-3x4.json",
+        "sha256": "REPLACE_WITH_SHA256"
+      },
+      "generation_receipt": {
+        "path": "qa/cover-generation-3x4.json",
+        "sha256": "REPLACE_WITH_SHA256"
+      }
+    }
   ],
   "platforms": {
-    "douyin": {"title": "用户选定的标题", "description": "本期描述", "hashtags": ["本次指定话题"], "required_hashtags": ["本次指定话题"], "action": "upload-draft"}
+    "douyin": {
+      "title": "用户选定的标题",
+      "description": "本期描述",
+      "hashtags": [
+        "本次指定话题"
+      ],
+      "required_hashtags": [
+        "本次指定话题"
+      ],
+      "action": "upload-draft"
+    }
+  },
+  "cover_design": {
+    "preset_id": "park-douyin-bold-orange-v1",
+    "preset_sha256": "REPLACE_WITH_ACTUAL_PRESET_SHA256"
   }
 }

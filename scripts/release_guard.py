@@ -49,6 +49,30 @@ class Release:
         require(file_hash(path) == ref['sha256'], f'stale release artifact: {ref["path"]}')
         return path
 
+    def cover_style(self):
+        design = self.doc.get('cover_design', {})
+        if design.get('preset_id') == 'park-douyin-bold-orange-v1':
+            path = ROOT / 'presets/covers/park-douyin-bold-orange-v1.json'
+            base = ROOT
+        else:
+            require(nonempty(design.get('user_override_ref')), 'cover style override requires explicit user instruction')
+            path = self.ref(design['preset'])
+            base = self.root
+        require(design.get('preset_sha256') == file_hash(path), 'cover style preset missing/stale')
+        preset = read_json(path)
+        require(preset['id'] == design['preset_id'], 'cover style ID mismatch')
+        if set(self.doc['required_cover_ratios']) != set(preset['ratios']):
+            override = self.doc.get('cover_ratios_override', {})
+            require(override.get('ratios') == self.doc['required_cover_ratios'] and nonempty(override.get('message_ref')), 'cover ratio change requires explicit current instruction')
+        references = {}
+        for ratio in self.doc['required_cover_ratios']:
+            require(ratio in preset['references'], 'cover style reference missing for ratio')
+            ref = preset['references'][ratio]
+            target = (base / ref['path']).resolve()
+            require(target.is_file() and file_hash(target) == ref['sha256'], 'cover style reference missing/stale')
+            references[ratio] = ref['sha256']
+        return design['preset_sha256'], references
+
     def check(self):
         d = self.doc
         require(d['schema'] == 'park-release/v1', 'unsupported release schema')
@@ -83,24 +107,52 @@ class Release:
                 'actual playback conditions missing')
         require(nonempty(qa['playback']['scope']) and nonempty(qa['limitations']), 'QA scope/limitations must be explicit (use none if applicable)')
         frame = read_json(self.ref(d['subject_frame_receipt']))
-        require(frame['source_sha256'] == d['recording']['sha256'], 'cover person is not sourced from current recording')
-        require(number(frame['time_sec']) and 0 <= frame['time_sec'] < recording_duration, 'cover frame outside source')
+        person_source = d['recording']
+        person_duration = recording_duration
+        if 'subject_source_override' in d:
+            override = d['subject_source_override']
+            require(nonempty(override.get('message_ref')), 'person source override requires explicit user instruction')
+            person_source = override['source']
+            person_path = self.ref(person_source)
+            require(override.get('kind') in ('image', 'video'), 'person source override kind missing')
+            person_duration = self.media_probe(person_path) if override['kind'] == 'video' else None
+        require(frame['source_sha256'] == person_source['sha256'], 'cover person is not sourced from current recording or explicit override')
+        require((person_duration is None and frame.get('time_sec') is None and frame['image'] == person_source) or
+                (person_duration is not None and number(frame['time_sec']) and 0 <= frame['time_sec'] < person_duration), 'cover frame outside source')
         self.ref(frame['image'])
         ratios = d['required_cover_ratios']
         require(isinstance(ratios, list) and ratios and len(ratios) == len(set(ratios)), 'required cover ratios missing/duplicated')
+        style_hash, style_refs = self.cover_style()
+        cover_title = d['title']
+        if 'cover_title_override' in d:
+            override = d['cover_title_override']
+            require(nonempty(override.get('title')) and nonempty(override.get('message_ref')) and override.get('release_title') == d['title'] and override.get('title_selection_ref') == d['title_selection']['message_ref'], 'explicit cover title override missing/stale')
+            cover_title = override['title']
         covers = d['covers']
         require(len(covers) == len(ratios) and {c['ratio'] for c in covers} == set(ratios), 'cover versions/ratios incomplete')
         for cover in covers:
-            require(cover['title'] == d['title'], 'cover still has previous title')
+            require(cover['title'] == cover_title, 'cover still has previous title')
             require(cover['subject_frame_sha256'] == frame['image']['sha256'], 'cover uses wrong person source frame')
             w, h = png_size(self.ref(cover['file']))
             a, b = [int(n) for n in cover['ratio'].split(':')]
             require(a > 0 and b > 0 and w > 0 and h > 0 and w * b == h * a, 'wrong cover aspect ratio')
             cq = read_json(self.ref(cover['qa']))
-            require(cq['image_sha256'] == cover['file']['sha256'] and cq['observed_title'] == d['title'], 'cover visual QA stale/title mismatch')
+            require(cq['image_sha256'] == cover['file']['sha256'] and ''.join(cq['observed_title'].split()) == ''.join(cover_title.split()), 'cover visual QA stale/title mismatch')
             require(cq['subject_frame_sha256'] == frame['image']['sha256'] and cq['face_matches_source'] is True,
                     'cover source identity not visually verified')
             require(cq['text_and_face_uncropped'] is True and nonempty(cq['evidence']), 'cover crop/legibility QA missing')
+            generation = read_json(self.ref(cover['generation_receipt']))
+            require(generation.get('engine') == 'imagegen' and nonempty(generation.get('tool_call_ref')) and nonempty(generation.get('prompt')), 'cover generation evidence missing')
+            require(generation.get('output_sha256') == cover['file']['sha256'] and generation.get('subject_frame_sha256') == frame['image']['sha256'], 'cover generation source/output stale')
+            require(generation.get('style_preset_sha256') == style_hash and cq.get('style_preset_sha256') == style_hash, 'cover generation/QA uses stale style')
+            used = generation.get('style_reference_sha256', {})
+            require(used.get(cover['ratio']) == style_refs[cover['ratio']] and all(style_refs.get(k) == v for k,v in used.items()), 'cover generation did not use matching saved reference')
+            for name in ('typography', 'portrait_layout', 'palette', 'thumbnail'):
+                check = cq.get('checks', {}).get(name, {})
+                require(check.get('status') == 'pass' and nonempty(check.get('evidence')), f'cover {name} review missing')
+            thumb = cq['checks']['thumbnail'].get('reviewed_width_px')
+            require(type(thumb) is int and 0 < thumb <= 360, 'cover thumbnail must be reviewed at small size')
+
         require(isinstance(d['platforms'], dict) and d['platforms'], 'platform package missing')
         for platform, package in d['platforms'].items():
             require(package['title'] == d['title'], f'{platform}: stale title')

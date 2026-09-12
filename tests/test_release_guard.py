@@ -10,7 +10,7 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 from release_guard import Release
 import release_guard
-from workflow_guard import Blocked, file_hash
+from workflow_guard import Blocked, file_hash, ROOT, read_json
 
 
 class ReleaseTests(unittest.TestCase):
@@ -33,12 +33,18 @@ class ReleaseTests(unittest.TestCase):
         self.frame = self.write('subject.png', b'fixture source image')
         self.frame_receipt = {'source_sha256': self.doc['recording']['sha256'], 'time_sec': 30, 'image': self.frame}
         self.doc['subject_frame_receipt'] = self.write('frame.json', self.frame_receipt)
+        style = ROOT / 'presets/covers/park-douyin-bold-orange-v1.json'
+        self.doc['cover_design'] = {'preset_id':'park-douyin-bold-orange-v1','preset_sha256':file_hash(style)}
+        refs = {k:v['sha256'] for k,v in read_json(style)['references'].items()}
         covers = []
         for ratio, w, h in [('4:3', 1440, 1080), ('3:4', 1080, 1440)]:
             cover_file = self.write(f'cover-{w}.png', b'\x89PNG\r\n\x1a\n' + struct.pack('>I', 13) + b'IHDR' + struct.pack('>II', w, h))
             qa = {'image_sha256': cover_file['sha256'], 'observed_title': self.doc['title'], 'subject_frame_sha256': self.frame['sha256'],
                   'face_matches_source': True, 'text_and_face_uncropped': True, 'evidence': 'fixture image review'}
-            covers.append({'ratio': ratio, 'file': cover_file, 'title': self.doc['title'], 'subject_frame_sha256': self.frame['sha256'], 'qa': self.write(f'cover-qa-{w}.json', qa)})
+            qa.update(style_preset_sha256=file_hash(style), checks={k:{'status':'pass','evidence':'fixture inspection'} for k in ('typography','portrait_layout','palette','thumbnail')})
+            qa['checks']['thumbnail']['reviewed_width_px'] = 320
+            generation = self.write(f'generation-{w}.json', {'engine':'imagegen','tool_call_ref':'fixture only','prompt':'fixture only','subject_frame_sha256':self.frame['sha256'],'style_preset_sha256':file_hash(style),'style_reference_sha256':refs,'output_sha256':cover_file['sha256']})
+            covers.append({'ratio': ratio, 'generation_receipt':generation, 'file': cover_file, 'title': self.doc['title'], 'subject_frame_sha256': self.frame['sha256'], 'qa': self.write(f'cover-qa-{w}.json', qa)})
         self.doc['covers'] = covers
         self.doc['platforms'] = {'douyin': {'title': self.doc['title'], 'description': '本期描述', 'hashtags': ['Ai新星计划'],
                                             'required_hashtags': ['Ai新星计划'], 'action': 'upload-draft'}}
@@ -70,6 +76,54 @@ class ReleaseTests(unittest.TestCase):
     def test_valid_package_and_draft(self):
         self.draft()
         self.release().draft('douyin')
+
+    def test_missing_saved_style_blocks(self):
+        del self.doc['cover_design']
+        with self.assertRaises(Blocked): self.release().check()
+
+    def test_generation_without_reference_blocks(self):
+        c = self.doc['covers'][0]
+        g = read_json(self.root / c['generation_receipt']['path'])
+        g['style_reference_sha256'] = {}
+        c['generation_receipt'] = self.write('bad-generation.json', g)
+        with self.assertRaisesRegex(Blocked, 'saved reference'): self.release().check()
+
+    def test_missing_thumbnail_inspection_blocks(self):
+        c = self.doc['covers'][0]
+        q = read_json(self.root / c['qa']['path'])
+        del q['checks']['thumbnail']
+        c['qa'] = self.write('bad-qa.json', q)
+        with self.assertRaisesRegex(Blocked, 'thumbnail'): self.release().check()
+
+    def test_explicit_platform_title_only_keeps_cover_title(self):
+        old = self.doc['title']
+        self.doc['title'] = '新平台标题'
+        self.doc['title_selection']['title'] = self.doc['title']
+        self.doc['platforms']['douyin']['title'] = self.doc['title']
+        self.doc['cover_title_override'] = {'title':old,'message_ref':'user explicitly said keep covers','release_title':self.doc['title'],'title_selection_ref':self.doc['title_selection']['message_ref']}
+        self.release().check()
+        del self.doc['cover_title_override']['message_ref']
+        with self.assertRaises(Blocked): self.release().check()
+
+    def test_single_cover_without_ratio_instruction_blocks(self):
+        self.doc['required_cover_ratios'] = ['4:3']
+        self.doc['covers'] = self.doc['covers'][:1]
+        with self.assertRaisesRegex(Blocked, 'ratio change'): self.release().check()
+
+    def test_explicit_person_image_override(self):
+        photo = self.write('chosen-person.png', b'explicit user source')
+        self.doc['subject_source_override'] = {'source':photo,'kind':'image','message_ref':'use this photo'}
+        self.doc['subject_frame_receipt'] = self.write('frame.json', {'source_sha256':photo['sha256'],'time_sec':None,'image':photo})
+        for cover in self.doc['covers']:
+            cover['subject_frame_sha256'] = photo['sha256']
+            for field in ('generation_receipt','qa'):
+                ref = cover[field]
+                body = read_json(self.root / ref['path'])
+                body['subject_frame_sha256'] = photo['sha256']
+                cover[field] = self.write(ref['path'], body)
+        self.release().check()
+        del self.doc['subject_source_override']['message_ref']
+        with self.assertRaisesRegex(Blocked, 'source override'): self.release().check()
 
     def test_previous_video_person_is_rejected(self):
         self.frame_receipt['source_sha256'] = 'old-video'
