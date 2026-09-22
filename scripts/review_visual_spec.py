@@ -40,7 +40,10 @@ def main():
         with tempfile.TemporaryDirectory(prefix='park-spec-review-') as temp:
             output = Path(temp) / 'answer.json'
             if args.provider == 'claude':
-                cmd = ['claude', '-p', '--tools', '', '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}',
+                # 模型写死：不带 --model 时吃的是用户 settings.json 的默认值。默认一改，
+                # 独立评审会悄悄降级，而且没有任何提示——评审是 H2 之前唯一的把关，
+                # 它的能力不该由一个跟它无关的设置决定。
+                cmd = ['claude', '-p', '--model', 'opus', '--tools', '', '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}',
                        '--setting-sources', '', '--no-session-persistence', '--session-id', session, '--output-format', 'json']
             else:
                 cmd = ['codex', 'exec', '--ephemeral', '--sandbox', 'read-only', '--skip-git-repo-check',
