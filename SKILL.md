@@ -26,7 +26,7 @@ Accept any of:
 
 On every invocation:
 
-1. Locate the project root and inspect media, subtitles, selected preset IDs, `project.json`, `process-log.md`, and existing outputs.
+1. Locate the project root and inspect media, subtitles, selected preset IDs, `project.json`, `process-log.md`, and existing outputs. A new project goes under the configured projects root (content-studio's `video_projects_root`, default `/Volumes/Phone SSD/视频/exports`), never under `~/Documents`, `~/Desktop` or `~/Library/Mobile Documents`: on Park's machine those are iCloud-synced and large media gets evicted to placeholders (9/22 lost two hours to this). Before reading any media run `find <project> -flags +dataless -print`; any output means placeholders — stop and tell Park which files, do not transcode, re-download or delete them yourself.
 2. Reconstruct state from artifacts. A status label without its required artifact is not evidence of completion.
 3. Select the earliest step whose completion criterion is not satisfied.
 4. Execute continuously until reaching a human gate, a real blocker, or final completion.
@@ -86,7 +86,7 @@ A gate becomes current only when its review artifact exists. Until then, continu
 
 ### H1 — Hook Approval at Step 5
 
-Park selects Hooks himself unless he requests AI suggestions/prefill; do not overwrite his choices. Read `hooks` from `analysis/worktable.json` in `order`, verify each quote against the transcript, convert each `anchor` into candidate cut points, and flag anything word-incomplete or judgment-without-subject. Resolve every `anchor_status: stale`/`unmatched` entry with Park first, and read `match: "fuzzy"` quotes back for confirmation. Derive `analysis/hook-candidates.json` from the worktable rather than authoring a second truth. AI nomination uses the versioned Hook prefill prompt when explicitly requested or when the worktable is empty; log the reason. Wait for approval of sentences and order before Step 7 extraction.
+Park selects Hooks himself unless he requests AI suggestions/prefill; do not overwrite his choices. Read `hooks` from `analysis/worktable.json` in `order`, verify each quote against the transcript, convert each `anchor` into candidate cut points, and flag anything word-incomplete or judgment-without-subject. Resolve every `anchor_status: stale`/`unmatched` entry with Park first, and read `match: "fuzzy"` quotes back for confirmation. Derive `analysis/hook-candidates.json` from the worktable rather than authoring a second truth. A Hook may carry `parts` (≥2): non-adjacent verbatim passages played in Park's order, e.g. an early subject + a later clause. Each part is original speech; never add a connecting word between parts, and never merge them into one rewritten sentence. AI nomination uses the versioned Hook prefill prompt when explicitly requested or when the worktable is empty; log the reason. Wait for approval of sentences and order before Step 7 extraction.
 
 Freeze the Product A/B shared media, audio, caption-style, and caption-layout preset IDs at this gate. This approves the Hook decision; it does not invite a new caption design unless the user explicitly requests an override.
 
@@ -185,7 +185,7 @@ Use the completion criteria below to select the next step; consult `VIDEO_WORKFL
 | 4 | Validate/align subtitles, then build the worktable | Usable `subtitles/source.srt`; `subtitles/transcript.sentences.json` passing the content guard; `analysis/worktable.html` handed to Park |
 | 5 | Read Park's Hook picks from `analysis/worktable.json` | Worktable JSON copied into `analysis/`; H1 approval recorded |
 | 6 | Build Content Map | Complete body map with visual/audio opportunities |
-| 7 | Extract Hook clips (worktable hints are search windows, not cut points) | Each clip is word-complete and boundary-checked by listening |
+| 7 | Extract Hook clips (worktable hints are search windows, not cut points) | Each clip is word-complete and boundary-checked by listening; a spliced Hook has one listened `segments` entry per part |
 | 8 | Assemble Hook data | Approved order plus Product A subtitle data |
 | 9 | Render Product A | Preset-rendered captions, `part-a-hook/video.mp4`, and passing QA A |
 | 10 | Accept rough cut / Picture Lock | `clean-master.mp4` and `edit.json` |

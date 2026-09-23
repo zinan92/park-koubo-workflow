@@ -1,4 +1,4 @@
-# Hook prefill · v1
+# Hook prefill · v2
 
 输入：完整校对 transcript（带 sentence id）、用户明确要求的候选数量、保留画面方式。
 任务：提出可供 Park 增删改的候选，不替 Park 批准。没有数量要求时选少量有区分度的候选；用户要 20 条就给 20 条有依据的候选，不把最终最多 5 个槽误当候选上限。
@@ -9,8 +9,9 @@
 - 优先具有差异性与信息量的句子；相同论点不要换字重复凑数。
 - 判断语气不能强于正文；解释为什么能吸引观众，以及脱离上下文的风险。
 - quote 必须是对应 sentence 的连续原文；跨句候选先生成可追溯的连续跨句 anchor，不能凭空拼接。
+- 允许**拼接候选**：几段不相邻的原话按顺序接成一条（例如前面点名的主语 + 后面的结论）。写成 `parts: [{sentence_id, quote}, …]`（至少两段），每段都是该句的连续原文；段与段之间**不补连接词**，候选的 quote 就是各段直接相连。拼出来的意思必须是原文本来的意思，不许借拼接制造原文没说过的判断。
 
-输出 hooks 数组：id、sentence_id、quote、reason、context_risk、suggested_order。
+输出 hooks 数组：id、sentence_id、quote、reason、context_risk、suggested_order；拼接候选用 parts 代替 sentence_id。
 时间只能是搜索提示，不是最终剪辑边界。建议顺序应形成“问题/冲突 → 差异化判断 → 回看正文的理由”，但不强凑固定结构。
 
 把 prompt 的路径与 SHA256、转写与候选文件记录到 workflow-evidence.json 的 hook-prefill inputs。

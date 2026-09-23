@@ -435,6 +435,88 @@ class Gates(unittest.TestCase):
         self.manifest['stages']['hook-prefill'] = {'inputs': {}}
         with self.assertRaises(Blocked): self.check('hook-cut')
 
+    def spliced_fixture(self, parts=None, segments=None, listened=True, hook_text=None):
+        """9/22: 先取前面的主语，再接后面一段。两段都是原话，中间不补字。"""
+        parts = parts if parts is not None else [
+            {'quote': "Don't be silent", 'anchor_status': 'ok'},
+            {'quote': '用产品换信任', 'anchor_status': 'ok'}]
+        joined = ''.join(x['quote'] for x in parts)
+        segments = segments if segments is not None else [
+            {'quote': "Don't be silent", 'start': 2.0, 'end': 3.4},
+            {'quote': '用产品换信任', 'start': 41.2, 'end': 43.0}]
+        source = self.put('hook-cut', 'source_media', 'media-fixture')
+        worktable = self.put('hook-cut', 'worktable', {'hooks': [
+            {'text': joined if hook_text is None else hook_text, 'order': 1, 'anchor_status': 'ok', 'parts': parts}]})
+        self.put('hook-cut', 'transcript', {'transcript': [
+            {'id': 's1', 'text': "Don't be silent 这个博主"}, {'id': 's2', 'text': '从它 6 万开始看，开源就是用产品换信任。'}]})
+        clip = {'quote': joined, 'segments': segments}
+        self.put('hook-cut', 'cut_plan', {'source_sha256': file_hash(source), 'timeline_id': 'rough', 'timing_timeline_id': 'rough',
+                                          'timing_method': 'word-alignment', 'clips': [clip]})
+        evidence = dict(clip, segments=[dict(x, boundary_listened=listened) for x in segments])
+        self.put('hook-cut', 'timing_evidence', {'source_sha256': file_hash(source), 'clips': [evidence]})
+        self.approve('H1', digest({'worktable': file_hash(worktable)}))
+
+    def test_spliced_hook_passes(self):
+        self.spliced_fixture()
+        self.check('hook-cut')
+
+    def test_spliced_hook_part_must_be_verbatim(self):
+        self.spliced_fixture(parts=[{'quote': "Don't be silent", 'anchor_status': 'ok'}, {'quote': '所以用产品换信任', 'anchor_status': 'ok'}],
+                             segments=[{'quote': "Don't be silent", 'start': 2, 'end': 3}, {'quote': '所以用产品换信任', 'start': 41, 'end': 43}])
+        with self.assertRaises(Blocked): self.check('hook-cut')
+
+    def test_spliced_hook_cannot_add_connecting_words(self):
+        self.spliced_fixture(hook_text="Don't be silent，他在用产品换信任")
+        with self.assertRaises(Blocked): self.check('hook-cut')
+
+    def test_spliced_hook_segment_count_must_match(self):
+        self.spliced_fixture(segments=[{'quote': "Don't be silent", 'start': 2, 'end': 3}])
+        with self.assertRaises(Blocked): self.check('hook-cut')
+
+    def test_spliced_hook_segments_cannot_overlap(self):
+        self.spliced_fixture(segments=[{'quote': "Don't be silent", 'start': 2, 'end': 42},
+                                       {'quote': '用产品换信任', 'start': 41, 'end': 43}])
+        with self.assertRaises(Blocked): self.check('hook-cut')
+
+    def test_spliced_hook_may_play_out_of_source_order(self):
+        self.spliced_fixture(parts=[{'quote': '用产品换信任', 'anchor_status': 'ok'}, {'quote': "Don't be silent", 'anchor_status': 'ok'}],
+                             segments=[{'quote': '用产品换信任', 'start': 41, 'end': 43}, {'quote': "Don't be silent", 'start': 2, 'end': 3}])
+        self.check('hook-cut')
+
+    def test_spliced_hook_every_boundary_listened(self):
+        self.spliced_fixture(listened=False)
+        with self.assertRaises(Blocked): self.check('hook-cut')
+
+    def test_spliced_hook_part_anchor_must_resolve(self):
+        self.spliced_fixture(parts=[{'quote': "Don't be silent", 'anchor_status': 'ok'}, {'quote': '用产品换信任', 'anchor_status': 'unmatched'}])
+        with self.assertRaises(Blocked): self.check('hook-cut')
+
+    def test_single_part_or_segments_on_single_hook_blocked(self):
+        self.spliced_fixture(parts=[{'quote': "Don't be silent", 'anchor_status': 'ok'}],
+                             segments=[{'quote': "Don't be silent", 'start': 2, 'end': 3}])
+        with self.assertRaises(Blocked): self.check('hook-cut')
+        source = self.put('hook-cut', 'source_media', 'media-fixture')
+        worktable = self.put('hook-cut', 'worktable', {'hooks': [{'text': '原话', 'order': 1, 'anchor_status': 'ok'}]})
+        self.put('hook-cut', 'transcript', {'transcript': [{'id': 's1', 'text': '原话'}]})
+        clip = {'quote': '原话', 'segments': [{'quote': '原话', 'start': 5, 'end': 7}]}
+        self.put('hook-cut', 'cut_plan', {'source_sha256': file_hash(source), 'timeline_id': 'rough', 'timing_timeline_id': 'rough', 'timing_method': 'word-alignment', 'clips': [clip]})
+        self.put('hook-cut', 'timing_evidence', {'source_sha256': file_hash(source), 'clips': [{'quote': '原话', 'segments': [{'quote': '原话', 'start': 5, 'end': 7, 'boundary_listened': True}]}]})
+        self.approve('H1', digest({'worktable': file_hash(worktable)}))
+        with self.assertRaises(Blocked): self.check('hook-cut')
+
+    def test_spliced_prefill_candidate(self):
+        self.put('hook-prefill', 'prompt', (ROOT / 'prompts/hook-prefill.md').read_text())
+        self.put('hook-prefill', 'transcript', {'transcript': [{'id': 's1', 'text': "Don't be silent 这个博主"}, {'id': 's2', 'text': '开源就是用产品换信任。'}]})
+        good = {'parts': [{'quote': "Don't be silent", 'sentence_id': 's1'}, {'quote': '用产品换信任', 'sentence_id': 's2'}], 'reason': '点名 + 结论'}
+        self.put('hook-prefill', 'candidates', {'hooks': [good]})
+        self.check('hook-prefill')
+        bad = dict(good, parts=[{'quote': "Don't be silent", 'sentence_id': 's1'}, {'quote': '他用产品换信任', 'sentence_id': 's2'}])
+        self.put('hook-prefill', 'candidates', {'hooks': [bad]})
+        with self.assertRaises(Blocked): self.check('hook-prefill')
+        glued = dict(good, quote="Don't be silent，就是用产品换信任")
+        self.put('hook-prefill', 'candidates', {'hooks': [glued]})
+        with self.assertRaises(Blocked): self.check('hook-prefill')
+
     def test_visual_selection_can_span_sentences(self):
         self.put('visual-spec', 'transcript', {'transcript': [{'id': 's1', 'text': '我的80，'}, {'id': 's2', 'text': '别人的95。'}]})
         self.check()

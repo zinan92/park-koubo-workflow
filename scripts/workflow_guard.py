@@ -165,6 +165,14 @@ class Guard:
         require(candidates, 'empty Hook candidates')
         for h in candidates:
             require(nonempty(h.get('reason')), 'Hook rationale missing')
+            if 'parts' in h:
+                # Spliced candidate: every part is verbatim from its own sentence; nothing added between.
+                parts = h['parts']
+                require(isinstance(parts, list) and len(parts) >= 2, 'spliced Hook needs at least two parts')
+                for part in parts:
+                    require(nonempty(part.get('quote')) and part['quote'] in texts[str(part['sentence_id'])], 'Hook part is not exact source text')
+                require(h.get('quote', ''.join(q['quote'] for q in parts)) == ''.join(q['quote'] for q in parts), 'spliced Hook quote adds words between parts')
+                continue
             require(nonempty(h.get('quote')) and h['quote'] in texts[str(h['sentence_id'])], 'Hook quote is not exact source text')
         return self.fingerprint('hook-prefill')
 
@@ -184,6 +192,9 @@ class Guard:
             self.hook_prefill()
         require(len(selected) == len(cuts['clips']) and selected, 'Hook selection/cut count mismatch')
         for h, c, t in zip(selected, cuts['clips'], timing['clips']):
+            if 'parts' in h or 'segments' in c or 'segments' in t:
+                self.spliced_hook(h, c, t, text)
+                continue
             require(nonempty(alias(h, 'quote', 'text')) and alias(h, 'quote', 'text') in text,
                     'selected Hook does not match current transcript')
             require(h.get('anchor_status') == 'ok', 'selected Hook anchor must be resolved')
@@ -194,6 +205,40 @@ class Guard:
         fp = self.fingerprint('hook-cut')
         self.approval('H1', digest({'worktable': file_hash(p['worktable'])}))
         return fp
+
+    @staticmethod
+    def spliced_hook(h, c, t, text):
+        """One Hook cut from several non-adjacent source passages, played in Park's order.
+
+        Each part is verbatim transcript text with its own listened boundaries; the Hook's text
+        is the parts joined with nothing in between. A segmented clip has no clip-level
+        start/end: its timing lives only in segments.
+        """
+        parts = h.get('parts')
+        require(isinstance(parts, list) and len(parts) >= 2, 'spliced Hook needs parts (at least two); single Hooks must not carry segments')
+        require(h.get('anchor_status') == 'ok', 'selected Hook anchor must be resolved')
+        quotes = []
+        for part in parts:
+            q = alias(part, 'quote', 'text')
+            require(nonempty(q) and q in text, 'Hook part is not exact transcript text')
+            require(part.get('anchor_status') == 'ok', 'Hook part anchor must be resolved')
+            quotes.append(q)
+        joined = ''.join(quotes)
+        require(alias(h, 'quote', 'text') == joined, 'spliced Hook text must be its parts joined, with no added words')
+        require(c.get('quote') == t.get('quote') == joined, 'Hook order/quote mismatch')
+        require('start' not in c and 'end' not in c, 'segmented clip keeps timing only in segments')
+        segs, evidence = c.get('segments'), t.get('segments')
+        require(isinstance(segs, list) and isinstance(evidence, list) and len(segs) == len(evidence) == len(parts),
+                'segment count differs from Hook parts')
+        for q, sc, st in zip(quotes, segs, evidence):
+            require(q == sc['quote'] == st['quote'], 'segment order/quote mismatch')
+            require(number(sc['start']) and number(sc['end']) and 0 <= sc['start'] < sc['end']
+                    and (sc['start'], sc['end']) == (st['start'], st['end']), 'segment boundary differs from timing evidence')
+            require(st.get('boundary_listened') is True, 'listen to every segment boundary before cutting')
+        right = None
+        for a, b in sorted((sc['start'], sc['end']) for sc in segs):
+            require(right is None or a >= right, 'Hook segments overlap')
+            right = b
 
     def visual_spec(self):
         p = self.inputs('visual-spec')

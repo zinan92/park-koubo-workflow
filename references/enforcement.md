@@ -35,7 +35,7 @@ Hash with `python3 scripts/workflow_guard.py hash <file>`. Paths are relative to
 | Gate | Inputs / condition |
 |---|---|
 | hook-prefill | `prompt`, `transcript`, `candidates`; exact quote and reason, versioned prompt hash |
-| hook-cut | `worktable`, `transcript`, `cut_plan`, `timing_evidence`, `source_media`; H1 and verified boundaries |
+| hook-cut | `worktable`, `transcript`, `cut_plan`, `timing_evidence`, `source_media`; H1 and verified boundaries. A Hook with `parts` (≥2) needs a clip with matching `segments` (same count and quotes, no clip-level start/end), every segment listened, no overlap, and Hook text = parts joined with nothing added |
 | visual-spec | `plan`, `worktable`, `transcript`, `shotcraft_skill`, `gallery`, per-card `card:ID` and `demo:ID`; structural/data checks only |
 | present-spec | visual-spec plus verified Picture Lock/body, current independent spec review, per-point composite previews and independent `qa/visual-preview.json`; image-first H2, not approved |
 | visual-render | present-spec plus H2 matching the combined spec/preview digest; spec inputs also include `picture_lock` and `body_media` |

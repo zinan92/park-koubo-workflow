@@ -84,6 +84,12 @@ main{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:0;min
 .slot{border:1px solid var(--line);background:var(--panel);border-radius:var(--radius);
   margin-bottom:9px;overflow:hidden}
 .slot.filled{border-color:#bcd6c8}
+.slot .part{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:8px;align-items:center;padding:6px 9px;border-bottom:1px dashed var(--line);font-size:13.5px;line-height:1.6}
+.slot .part .pn{grid-row:1/3;align-self:start;font:600 11px/1.9 var(--mono);color:var(--hook)}
+.slot .part .pt{grid-column:2/4}
+.slot .part .pm{font:10.5px/1.4 var(--mono);color:var(--ink-3)}
+.slot .part .pb{display:flex;gap:2px}
+.slot .partnote{padding:5px 9px;font-size:11.5px;color:var(--ink-3)}
 .slot .sh{display:flex;align-items:center;gap:7px;padding:6px 9px;background:#fafaf7;border-bottom:1px solid var(--line)}
 .slot.filled .sh{background:var(--hook-soft)}
 .slot .n{font:600 12px/1 var(--mono);color:var(--hook);background:#fff;border:1px solid #c6ded1;
@@ -181,7 +187,7 @@ if(DATA.visual_preview_url){const a=document.getElementById('visualPreviewLink')
 /* ---------------- state ---------------- */
 const KEY = 'park-worktable::' + (DATA.project || 'default');
 const blank = () => ({
-  hooks: Array.from({length:5}, (_,i)=>({slot:i+1, text:'', anchor:null})),
+  hooks: Array.from({length:5}, (_,i)=>({slot:i+1, text:'', anchor:null, parts:[]})),
   notes: [],
   text_overrides: {}
 });
@@ -281,10 +287,11 @@ function load(){
     const d = JSON.parse(raw);
     S = Object.assign(blank(), d);
     if(!Array.isArray(S.hooks)||S.hooks.length!==5) S.hooks = blank().hooks;
+    S.hooks.forEach(h=>{ if(!Array.isArray(h.parts)) h.parts=[]; });
     S.text_overrides = S.text_overrides || {};
     // flag anchors pointing at sentences that no longer exist — keep the text
     const check = a => a && a.ids && a.ids.some(id=>!byId[id]);
-    S.hooks.forEach(h=>{ if(check(h.anchor)) stale.add('h'+h.slot); });
+    S.hooks.forEach(h=>{ if(check(h.anchor)||h.parts.some(pt=>check(pt.anchor))) stale.add('h'+h.slot); });
     S.notes.forEach(n=>{ if(check(n.anchor)) stale.add('n'+n.marker); });
     for(const id of Object.keys(S.text_overrides)) if(!byId[id]) delete S.text_overrides[id];
     if(stale.size) toast('有 '+stale.size+' 条锚点失效（文稿已变），文字已保留，请重新指认');
@@ -325,13 +332,15 @@ function paintBadges(){
     host.appendChild(b);
   }
   for(const h of S.hooks){
-    if(!h.text.trim()||!h.anchor) continue;
-    const last=h.anchor.ids[h.anchor.ids.length-1];
-    const host=document.querySelector('.sent[data-id="'+last+'"] .marks');
-    if(!host) continue;
-    const b=document.createElement('span');
-    b.className='hkbadge'; b.textContent='H'+h.slot;
-    host.appendChild(b);
+    const pieces = spliced(h) ? h.parts.map((pt,i)=>[pt.anchor,'H'+h.slot+'·'+(i+1)]) : [[h.text.trim()&&h.anchor,'H'+h.slot]];
+    for(const [a,label] of pieces){
+      if(!a) continue;
+      const host=document.querySelector('.sent[data-id="'+a.ids[a.ids.length-1]+'"] .marks');
+      if(!host) continue;
+      const b=document.createElement('span');
+      b.className='hkbadge'; b.textContent=label;
+      host.appendChild(b);
+    }
   }
 }
 let EDITING=null;
@@ -375,7 +384,10 @@ function endEdit(){
     obj.text = textOf(a.ids, a.from, a.to);
     if(boundary){ stale.add(key); review++; } 
   };
-  S.hooks.forEach(h=>{ if(h.text.trim()) refresh(h,'h'+h.slot); });
+  S.hooks.forEach(h=>{
+    if(spliced(h)){ h.parts.forEach(pt=>refresh(pt,'h'+h.slot)); h.text=joinParts(h); }
+    else if(h.text.trim()) refresh(h,'h'+h.slot);
+  });
   S.notes.forEach(n=>{ const o={text:n.quote,anchor:n.anchor}; refresh(o,'n'+n.marker);
     if(o.anchor){ n.anchor=o.anchor; n.quote=o.text; } });
   renderHooks(); renderNotes(); paintBadges(); stats(); save();
@@ -420,6 +432,8 @@ function showPop(){
   const free=S.hooks.find(h=>!h.text.trim());
   let html='<span class="lbl">'+s.text.length+' 字</span>';
   for(const h of S.hooks) html+='<button data-hook="'+h.slot+'">H'+h.slot+(h.text.trim()?'·换':'')+'</button>';
+  const filled=S.hooks.filter(h=>h.text.trim());
+  if(filled.length){ html+='<span class="sep"></span>'; for(const h of filled) html+='<button data-append="'+h.slot+'" title="接在 Hook '+h.slot+' 后面，只能拼原话">+ 拼到 H'+h.slot+'</button>'; }
   html+='<span class="sep"></span><button class="mk-btn" data-mark="1">+ 视觉标注 '+circ(S.notes.length+1)+'</button>';
   pop.innerHTML=html;
   pop.style.display='block';
@@ -437,14 +451,32 @@ pop.addEventListener('mousedown', e=>e.preventDefault());
 pop.addEventListener('click', e=>{
   const b=e.target.closest('button'); if(!b||!SEL) return;
   if(b.dataset.hook) fillHook(+b.dataset.hook, SEL.text, anchorSpan(SEL.ids,SEL.from,SEL.to));
+  if(b.dataset.append) appendPart(+b.dataset.append, SEL.text, anchorSpan(SEL.ids,SEL.from,SEL.to));
   if(b.dataset.mark) addNote(SEL.text, anchorSpan(SEL.ids,SEL.from,SEL.to));
   pop.style.display='none'; window.getSelection().removeAllRanges();
 });
 
 /* ---------------- hooks ---------------- */
+/* A Hook may be spliced from non-adjacent passages (9/22: the subject from early on + a
+   later clause). Every part stays a verbatim transcript selection; nothing is typed between
+   them, so a spliced slot has no textarea — only the parts, reorderable and removable. */
+const spliced = h => Array.isArray(h.parts) && h.parts.length >= 2;
+const joinParts = h => h.parts.map(pt=>pt.text).join('');
+function appendPart(slot, text, anchor){
+  const h=S.hooks[slot-1];
+  if(!h.text.trim()){ fillHook(slot, text, anchor); return; }
+  if(!spliced(h)){
+    if(!h.anchor){ toast('Hook '+slot+' 还没对上原文，先从左边重新选中填入，再拼'); return; }
+    h.parts=[{text:h.text.trim(), anchor:h.anchor}];
+  }
+  h.parts.push({text, anchor});
+  h.text=joinParts(h); h.anchor=null;
+  renderHooks(); paintBadges(); stats(); save();
+  toast('Hook '+slot+' 现在由 '+h.parts.length+' 段原话拼成');
+}
 function fillHook(slot, text, anchor){
   const h=S.hooks[slot-1];
-  h.text=text; h.anchor=anchor; stale.delete('h'+slot);
+  h.text=text; h.anchor=anchor; h.parts=[]; stale.delete('h'+slot);
   renderHooks(); paintBadges(); stats(); save();
   toast('已填入 Hook '+slot);
 }
@@ -453,6 +485,7 @@ function renderHooks(){
   for(const h of S.hooks){
     const filled=!!h.text.trim();
     const d=document.createElement('div');
+    if(spliced(h)){ root.appendChild(renderSpliced(h, d)); continue; }
     d.className='slot'+(filled?' filled':'');
     const a=h.anchor;
     const meta = filled
@@ -464,6 +497,7 @@ function renderHooks(){
       '<span class="meta">'+meta+'</span><span class="spacer"></span>'+
       (h.slot>1?'<button class="ghost" data-up="'+h.slot+'" title="上移">↑</button>':'')+
       (h.slot<5?'<button class="ghost" data-dn="'+h.slot+'" title="下移">↓</button>':'')+
+      (filled&&h.anchor?'<button class="ghost" data-more="'+h.slot+'" title="再从左边选一段原话接在后面">+ 再拼一段</button>':'')+
       (filled?'<button class="ghost" data-clr="'+h.slot+'" title="清空">✕</button>':'')+
       '</div>'+
       '<textarea placeholder="粘贴或从左侧选中填入…">'+'</textarea>'+
@@ -474,14 +508,48 @@ function renderHooks(){
     root.appendChild(d);
   }
   root.querySelectorAll('[data-clr]').forEach(b=>b.onclick=()=>{
-    const h=S.hooks[+b.dataset.clr-1]; h.text=''; h.anchor=null; stale.delete('h'+h.slot);
+    const h=S.hooks[+b.dataset.clr-1]; h.text=''; h.anchor=null; h.parts=[]; stale.delete('h'+h.slot);
+    renderHooks(); paintBadges(); stats(); save();
+  });
+  root.querySelectorAll('[data-more]').forEach(b=>b.onclick=()=>toast('在左边选中下一段原话，点弹窗里的「+ 拼到 H'+b.dataset.more+'」'));
+  root.querySelectorAll('[data-pmv]').forEach(b=>b.onclick=()=>{
+    const [slot,i,d]=b.dataset.pmv.split(',').map(Number); const h=S.hooks[slot-1], j=i+d;
+    [h.parts[i],h.parts[j]]=[h.parts[j],h.parts[i]]; h.text=joinParts(h);
+    renderHooks(); paintBadges(); save();
+  });
+  root.querySelectorAll('[data-pdel]').forEach(b=>b.onclick=()=>{
+    const [slot,i]=b.dataset.pdel.split(',').map(Number); const h=S.hooks[slot-1];
+    h.parts.splice(i,1);
+    if(h.parts.length===1){ h.anchor=h.parts[0].anchor; h.text=h.parts[0].text; h.parts=[]; }
+    else h.text=joinParts(h);
     renderHooks(); paintBadges(); stats(); save();
   });
   const swap=(i,j)=>{ const A=S.hooks[i],B=S.hooks[j];
-    [A.text,B.text]=[B.text,A.text]; [A.anchor,B.anchor]=[B.anchor,A.anchor];
+    [A.text,B.text]=[B.text,A.text]; [A.anchor,B.anchor]=[B.anchor,A.anchor]; [A.parts,B.parts]=[B.parts,A.parts];
+    const sa=stale.has('h'+A.slot), sb=stale.has('h'+B.slot);
+    stale.delete('h'+A.slot); stale.delete('h'+B.slot); if(sb) stale.add('h'+A.slot); if(sa) stale.add('h'+B.slot);
     renderHooks(); paintBadges(); save(); };
   root.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>swap(+b.dataset.up-1,+b.dataset.up-2));
   root.querySelectorAll('[data-dn]').forEach(b=>b.onclick=()=>swap(+b.dataset.dn-1,+b.dataset.dn));
+}
+function renderSpliced(h, d){
+  d.className='slot filled spliced';
+  const span=a=>a ? a.ids[0]+(a.ids.length>1?'–'+a.ids[a.ids.length-1]:'')+' · ~'+tc(a.start_hint)+'–'+tc(a.end_hint) : '无锚点';
+  d.innerHTML=
+    '<div class="sh"><span class="n">Hook '+h.slot+'</span>'+
+    '<span class="meta">'+h.parts.length+' 段拼接 · '+h.text.length+'字</span><span class="spacer"></span>'+
+    (h.slot>1?'<button class="ghost" data-up="'+h.slot+'" title="上移">↑</button>':'')+
+    (h.slot<5?'<button class="ghost" data-dn="'+h.slot+'" title="下移">↓</button>':'')+
+    '<button class="ghost" data-more="'+h.slot+'" title="再从左边选一段原话接在后面">+ 再拼一段</button>'+
+    '<button class="ghost" data-clr="'+h.slot+'" title="清空">✕</button></div>'+
+    h.parts.map((pt,i)=>'<div class="part"><span class="pn">'+(i+1)+'</span><span class="pt">'+esc(pt.text)+'</span>'+
+      '<span class="pm">'+span(pt.anchor)+'</span><span class="pb">'+
+      (i>0?'<button class="ghost" data-pmv="'+h.slot+','+i+',-1" title="这段往前">↑</button>':'')+
+      (i<h.parts.length-1?'<button class="ghost" data-pmv="'+h.slot+','+i+',1" title="这段往后">↓</button>':'')+
+      '<button class="ghost" data-pdel="'+h.slot+','+i+'" title="去掉这段">✕</button></span></div>').join('')+
+    '<div class="partnote">每段都是原话，按这个顺序剪在一起，中间不补字。</div>'+
+    (stale.has('h'+h.slot)?'<div class="warn">请复核：这句被改过，文字已跟着更新</div>':'');
+  return d;
 }
 /* paste-safe: find the text back in the transcript so a missing character still anchors */
 function findSpan(q){
@@ -585,7 +653,11 @@ function payload(){
     generated_at:DATA.generated_at, exported_at:new Date().toISOString(),
     timing_note:'所有 start_hint / end_hint 由 SRT 字幕块线性插值得到，是近似值，不得直接用于 Step 7 精确切割。',
     transcript:SENT.map(s=>({...s, text:curText(s.id)})),
-    hooks:S.hooks.filter(h=>h.text.trim()).map((h,i)=>({
+    hooks:S.hooks.filter(h=>h.text.trim()).map((h,i)=>spliced(h) ? ({
+      slot:h.slot, order:i+1, text:joinParts(h), anchor:null,
+      anchor_status: stale.has('h'+h.slot)?'stale':(h.parts.every(pt=>pt.anchor)?'ok':'unmatched'),
+      parts:h.parts.map(pt=>({quote:pt.text, anchor:pt.anchor,
+        anchor_status: stale.has('h'+h.slot)?'stale':(pt.anchor?'ok':'unmatched')}))}) : ({
       slot:h.slot, order:i+1, text:h.text.trim(), anchor:h.anchor,
       anchor_status: stale.has('h'+h.slot)?'stale':(h.anchor?'ok':'unmatched')})),
     visual_notes:S.notes.map(n=>({
