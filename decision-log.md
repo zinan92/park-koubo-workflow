@@ -25,3 +25,15 @@
 - Duplicate JSON keys are an ambiguity, not a harmless parser detail: `fail` followed by `pass` must block, including inside provider responses.
 - A new worktree isolates this repository; it does not update a different active checkout or the installed skill. Keep production sessions on their chosen revision until intentionally switched.
 - Guards and local approval files are not a security boundary against a producer with unrestricted write/shell access. Stronger enforcement requires a separately controlled executor and approval store.
+
+## 2026-09-23 — Spliced Hooks and the iCloud project-root rule (#11)
+
+- A Hook may be spliced from ≥2 non-adjacent verbatim passages (`parts`), played in Park's order. 9/22 Park asked for this in both the workbench and the skill; that video was done by hand and nothing was committed, so he would have had to ask again.
+- The guard adds a separate branch for spliced Hooks; the single-Hook path is textually unchanged. A segmented clip keeps timing only in `segments` (no clip-level start/end), every segment is listened, segments may be out of source order but never overlap, and the Hook text must equal its parts joined with nothing added — that is how "no connecting words" is enforced.
+- Hook prefill prompt → v2 (spliced candidates allowed, same no-filler rule). Projects that pinned v1 in a `hook-prefill` stage must re-run prefill before re-checking; the 9/22 Codex project had no such stage.
+- Step 1: projects go under the configured root, never iCloud-synced `~/Documents`/`~/Desktop`; `find <project> -flags +dataless -print` before reading media (verified on this Mac: prints exactly the evicted files).
+
+### Gotchas
+
+- A spliced slot has no textarea: the joined text is not contiguous, so the paste-reanchor path would silently mark it `unmatched`. Parts are only added from transcript selections.
+- Editing a transcript sentence re-reads each part from its anchor, same as single Hooks; the Hook is flagged for review.

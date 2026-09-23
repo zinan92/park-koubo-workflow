@@ -151,6 +151,8 @@ Product A 与 Product B 使用相同的画幅、FPS、编码、色彩空间、�
 ### Step 1：口播项目设置
 
 - 记录原始视频、剪映粗剪、可选 SRT、画幅、平台和输出目录。
+- 项目目录建在配置的根目录（content-studio 的 `video_projects_root`，默认 `/Volumes/Phone SSD/视频/exports`）。**不许建在 `~/Documents`、`~/Desktop`、`~/Library/Mobile Documents`**——这台机器开着 iCloud「桌面与文稿」，大文件会被卸载成占位文件（9/22 因此耽误两个多小时）。
+- 读任何媒体前先跑 `find <项目目录> -flags +dataless -print`。有输出就是占位文件：停下，告诉 Park 是哪几个文件；不自己转码、重下或删除。
 - 直接设置 `content_type: talking_head_video`。
 - 建立 Product A、Product B 和 Final 三个目标。
 - 4:3 项目默认载入四个 production preset，并把 ID 写入 `project.json`；其他画幅没有匹配 preset 时标记 blocked。
@@ -261,6 +263,7 @@ Park 点「导出 worktable.json」后文件会落在浏览器下载目录。Age
 - 对批准的 Hook 逐条听首尾。
 - 时间不可靠时，只对相关窗口做逐词校准。
 - 分别导出无字幕、无 B-roll、无动效的独立 Hook 片段。
+- **拼接 Hook**（worktable 里带 `parts` 的 Hook）：每一段单独定位、单独听首尾，按 `parts` 的顺序剪下来直接接在一起，成为这一条 Hook 的片段。每段都是原话，段与段之间不补任何字、不重录、不改写。`cut_plan` 里这条 clip 写 `quote`（各段原话直接相连）和 `segments: [{quote, start, end}, …]`，不写 clip 级的 start/end；`timing_evidence` 同构，每段都要 `boundary_listened: true`。段可以不按原片先后，但不能重叠。
 - 正文源文件不修改，Hook 原位置不删除。
 
 产物：`part-a-hook/individual/*.mp4`、`part-a-hook/edit.json`。
