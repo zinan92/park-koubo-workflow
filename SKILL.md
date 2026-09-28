@@ -16,6 +16,20 @@ Load the versioned production presets instead of inventing project-local default
 
 Record all four preset IDs in `project.json`. Use another value only through a named, versioned project override. A 4:3 project without an override uses these defaults; a different aspect ratio blocks on a matching media and caption preset rather than triggering ad-hoc redesign.
 
+## Park's manual spec (`project.json` → `spec`)
+
+After exporting from 剪映, Park picks these by hand in content-studio's 剪辑进度 card. They are his decisions, not judgment calls: read them, apply them, never re-decide or ask again.
+
+| `spec` key | Values | Effect |
+| --- | --- | --- |
+| `hook` | `yes` / `no` | `no` = Steps 5, 7, 8, 9 are `skipped`, no Product A; Product B is the whole video |
+| `captions` | `generate` / `burned_in` | `burned_in` → caption preset `park-caption-burned-in-v1`: captions are already in the picture; do not render captions in Steps 8, 9, 13, but keep word-level timing and keep every overlay out of the reserved caption band |
+| `layout` | `split-4x3` / `vertical-full-overlay` | `vertical-full-overlay` → media preset `park-talking-head-9x16-full-v1` + visual style `park-card-overlay-c-v1`: live face full-frame, graphics only as chest-zone cards |
+| `visual_coverage_target` | 0–1 | Coverage target for Product B; inside 30–40% needs no exception |
+| `bgm` | `none` / `light` | `none` skips BGM in Step 12 (voice loudness still applies) |
+
+A `spec` choice is the "named, versioned project override" above: write the matching preset IDs into `presets` at Step 1 and do not block on aspect ratio when `spec.layout` matches the footage. A missing key means the old default for that key.
+
 ## Entry contract
 
 Accept any of:
@@ -98,7 +112,7 @@ After Picture Lock, use [references/visual-preview.md](references/visual-preview
 
 Pre-H2 preview rendering of limited stills/clips is authorized and required; whole production rendering remains blocked. Independent spec QA AND independent visual-preview/design QA must pass before `present-spec`. Show the actual images/clips, not just a source-video player or card names. Bind H2 to spec plus preview assets, layout and implementation hashes; edits invalidate affected evidence and approval. Preserve approved snapshots and changes.md.
 
-Default overlays occupy the right notes region with the live face retained; measure the actual rectangles. Full-frame/custom composition needs an explicit user choice. Evaluate added value against the unmodified footage and normal-speed pacing; do not extend static tails simply to fill a spoken paragraph or coverage target.
+Default overlays occupy the right notes region with the live face retained; measure the actual rectangles. Full-frame/custom composition needs an explicit user choice. `spec.layout = vertical-full-overlay` is that explicit choice: follow `presets/visual/park-card-overlay-c-v1.json` (four card types mapped to ShotCraft cards, chest zone only, numbers and wording only as spoken). Evaluate added value against the unmodified footage and normal-speed pacing; do not extend static tails simply to fill a spoken paragraph or coverage target.
 
 ### H3 — Final Approval after Step 14
 
