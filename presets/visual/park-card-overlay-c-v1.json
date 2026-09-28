@@ -1,0 +1,30 @@
+{
+  "schema_version": "ask-park-video/visual-preset/v1",
+  "id": "park-card-overlay-c-v1",
+  "status": "approved",
+  "approved_by": "Park 2026-09-29：位置（胸前）、样式、密度（2 分钟 7 张、约 35%）都认可",
+  "reference": "2026-09-28_99%的自媒体人都在追求流量…-2/trial-c-v1（试做工程、shots.json、成片）",
+  "card": {
+    "background": "rgba(244,241,234,0.96)",
+    "ink": "#15171C",
+    "accent": "#E2461F",
+    "muted": "#6B655B",
+    "radius_px": 34,
+    "padding_px": [34, 44],
+    "font": "PingFang SC",
+    "title_px": 42,
+    "enter": "10f：opacity 0→1、y 28→0、scale 0.965→1（easeOutCubic）",
+    "exit": "末 9f：淡出并上移 14px"
+  },
+  "types": {
+    "odometer": {"shotcraft": "data/odometer-digit-roll", "use": "口播里说出的单个关键数字/百分比"},
+    "marker": {"shotcraft": "typography/marker-underline-title", "use": "结论里的一个数字或关键词，朱红马克笔划线强调"},
+    "rows": {"shotcraft": "typography/blur-slide", "use": "2–4 个并列数据或要点，每行在说到时入场；多于 3 项用两栏"},
+    "chain": {"shotcraft": "typography/blur-slide + typography/pill-slot-cycle", "use": "A → B → C 的因果/流程，最后一项朱红"}
+  },
+  "rules": [
+    "只把他嘴里说出的数字和原话上卡，不编数字、不改写结论",
+    "每张卡的揭示帧对准词级时间",
+    "卡片不进头部、字幕带、右侧按钮栏"
+  ]
+}

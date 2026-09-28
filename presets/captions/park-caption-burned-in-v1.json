@@ -1,0 +1,14 @@
+{
+  "schema_version": "ask-park-video/caption-preset/v1",
+  "id": "park-caption-burned-in-v1",
+  "status": "override",
+  "selected_by": "project.json spec.captions = burned_in（Park 已经在剪映里加好字幕）",
+  "mode": "burned_in",
+  "renderer_contract": {
+    "render_captions": false,
+    "steps_without_caption_rendering": [8, 9, 13],
+    "still_required": "词级时间（subtitles/words.json）照做：动效要对准说话的词，Hook 要切在词边界上"
+  },
+  "reserved_band": {"y_pct": [0.83, 0.92], "rule": "任何叠加层都不能进入这条带，QA 抽 enter/reveal/hold/exit 帧核对"},
+  "step3_expectation": "Step 3 的硬字幕检查应当是「有」；是「有」不算异常"
+}

@@ -42,4 +42,24 @@ require(audio["voice"]["true_peak_dbtp"] == -1.5, "voice true-peak target drifte
 require(not audio["bgm"]["enabled_by_default"], "BGM must stay opt-in")
 require(not audio["sfx"]["enabled_by_default"], "SFX must stay opt-in")
 
-print("PASS 4 production presets are valid and cross-consistent")
+
+# 竖屏纯口播（版式 C）和剪映已烧字幕：Park 在 content-studio 手动选的覆盖预设
+def load_path(rel: str) -> dict:
+    with (ROOT / rel).open(encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+vmedia = load_path("presets/media/park-talking-head-9x16-full-v1.json")
+burned = load_path("presets/captions/park-caption-burned-in-v1.json")
+cards = load_path("presets/visual/park-card-overlay-c-v1.json")
+require(vmedia["video"]["width"] * 16 == vmedia["video"]["height"] * 9, "vertical media is not 9:16")
+require(vmedia["layout"]["mode"] == "full-face-overlay", "vertical layout mode drifted")
+zone = vmedia["layout"]["card_zone"]
+require(zone["x"] + zone["width"] <= 900, "card zone runs into the right-hand button column")
+band = burned["reserved_band"]["y_pct"]
+require(zone["bottom"] <= band[0] * vmedia["video"]["height"], "card zone overlaps the burned-in caption band")
+require(burned["renderer_contract"]["render_captions"] is False, "burned-in preset must not re-render captions")
+require(vmedia["layout"]["visual_style"] == cards["id"], "vertical layout points to the wrong card style")
+require(set(cards["types"]) == {"odometer", "marker", "rows", "chain"}, "card types drifted")
+
+print("PASS 4 production presets + vertical/burned-in overrides are valid and cross-consistent")
