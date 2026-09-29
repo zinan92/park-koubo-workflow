@@ -1,5 +1,7 @@
 <div align="center">
 
+**v2.13 竖屏动效镜头库：** 人脸全屏的竖屏口播，由导演逐段从 `motion/` 镜头库挑镜头（ShotCraft 卡改编的竖屏纸墨中文组件，填数据就能用），胸前卡片为主、隔 1.5–3 分钟全屏一次；Park 只看 2–3 段成片样片审批。[导演规矩](references/motion-director.md) · [镜头库](motion/README.md)。
+
 **v2.12 抖音封面：** 保存横竖品牌参考图、生成提示词规范和样式/缩略图检查；默认复用版式并替换本期人物，改标题联动两张封面。[封面协议](references/douyin-cover.md)。
 
 # Ask Park Video

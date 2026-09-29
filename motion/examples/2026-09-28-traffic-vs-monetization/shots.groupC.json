@@ -1,0 +1,145 @@
+{
+ "_说明": "2026-09-28《99% 的自媒体人都在追求流量》第二版 · 组 C 的 X 镜头（Park 9/29 认可）。at 一律是口播原片绝对秒；HashtagPills 的 keys 是每一下键入的时刻（# + 每字一下）。",
+ "shots": [
+  {
+   "id": "X04",
+   "component": "SplitFlapWord",
+   "start": 292.9,
+   "frames": 132,
+   "props": {
+    "title": "我踩的第一个坑",
+    "word": "流量",
+    "landAt": 294.14
+   }
+  },
+  {
+   "id": "X08",
+   "component": "HashtagPills",
+   "start": 443.0,
+   "frames": 180,
+   "props": {
+    "title": "最吃流量的关键词",
+    "titleAt": 444.82,
+    "hero": {
+     "text": "普通人",
+     "keys": [
+      445.633,
+      445.767,
+      445.967,
+      446.133
+     ]
+    },
+    "inline": {
+     "text": "零基础",
+     "keys": [
+      446.567,
+      446.633,
+      447.1,
+      447.3
+     ]
+    }
+   }
+  },
+  {
+   "id": "X12",
+   "component": "BeforeAfterSlider",
+   "start": 741.4,
+   "frames": 258,
+   "props": {
+    "before": "效率级痛点",
+    "beforeTag": "工具测评",
+    "after": "命运级痛点",
+    "flingAt": 742.98,
+    "note": {
+     "at": 745.2,
+     "text": "所以我不做工具测评"
+    }
+   }
+  },
+  {
+   "id": "X13",
+   "component": "StampWords",
+   "start": 763.8,
+   "frames": 138,
+   "props": {
+    "title": "命运级痛点就几个",
+    "words": [
+     {
+      "text": "婚姻",
+      "at": 764.86
+     },
+     {
+      "text": "上学",
+      "at": 765.3
+     },
+     {
+      "text": "生病",
+      "at": 765.72
+     },
+     {
+      "text": "找工作",
+      "at": 766.12
+     },
+     {
+      "text": "钱不够",
+      "at": 766.68
+     }
+    ]
+   }
+  },
+  {
+   "id": "X14",
+   "component": "StackList",
+   "start": 802.0,
+   "frames": 822,
+   "props": {
+    "title": "我的产品",
+    "subtitle": "先给博主用",
+    "items": [
+     {
+      "text": "选题",
+      "at": 808.96
+     },
+     {
+      "text": "找对标",
+      "at": 809.66
+     },
+     {
+      "text": "数据监控",
+      "at": 810.58
+     },
+     {
+      "text": "一条视频发 10 个平台",
+      "at": 815.7
+     },
+     {
+      "text": "内容拆解",
+      "at": 817.58
+     },
+     {
+      "text": "每天的流量监控",
+      "at": 826.14
+     }
+    ]
+   }
+  },
+  {
+   "id": "X15",
+   "component": "BrandLockup",
+   "start": 860.3,
+   "frames": 243,
+   "props": {
+    "name": "帕克动手",
+    "en": "PARK & CO.",
+    "slogan": {
+     "at": 861.86,
+     "text": "企业家的 AI 产品经理"
+    },
+    "promise": {
+     "at": 866.96,
+     "text": "不交报告，交结果。"
+    }
+   }
+  }
+ ]
+}

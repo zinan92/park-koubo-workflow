@@ -1,0 +1,7 @@
+node_modules
+out/
+build/
+.remotion/
+# 每条视频的文件长图（含客户资料的遮挡副本）只放在视频工程里，不进仓库
+public/*.png
+public/*.jpg
