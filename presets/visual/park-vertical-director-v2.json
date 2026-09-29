@@ -1,0 +1,25 @@
+{
+  "schema_version": "ask-park-video/visual-preset/v1",
+  "id": "park-vertical-director-v2",
+  "status": "approved",
+  "supersedes": "park-card-overlay-c-v1",
+  "approved_by": "Park 2026-09-29：看 3 段样片后「这个质量，整条重新剪」；第一版只用 4 种胸前卡片被评 plain",
+  "reference": "2026-09-28《99% 的自媒体人都在追求流量》第二版；镜头数据见 motion/examples/2026-09-28-traffic-vs-monetization/",
+  "director": "references/motion-director.md",
+  "library": "motion/（按 src/shots.json 注册；catalog 见 motion/src/catalog/）",
+  "palette": {"paper": "#F4F1EA", "ink": "#15171C", "accent": "#E2461F", "stone": "#B7B0A3", "line": "#E4DFD4", "muted": "#6B655B"},
+  "fonts": {"body": "PingFang SC", "display": "Songti SC"},
+  "sizes": {
+    "chest": {"x": [60, 900], "bottom": 1580, "max_content_height": 560, "background": "rgba(244,241,234,0.96)", "covers_face": false},
+    "full": {"canvas": [1080, 1920], "covers_captions": true, "content_y": [150, 1650], "text_x_max_below_y900": 900}
+  },
+  "full_screen_every_seconds": [90, 180],
+  "approval": "H2 = 2–3 段最终画质样片（带原声和原字幕）；不给 Park 看文字镜头表",
+  "rules": [
+    "逐段判断内容再挑镜头，同一种镜头不连着用",
+    "全屏整屏盖满，连字幕一起盖",
+    "只上他说出口的话和数字",
+    "字对准说出那个词的时刻（词级时间），关键信息落定后静止 ≥1 秒",
+    "展示交付文件时遮客户名字和营业额，原件不动"
+  ]
+}

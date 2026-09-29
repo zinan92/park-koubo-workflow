@@ -24,7 +24,7 @@ After exporting from 剪映, Park picks these by hand in content-studio's 剪辑
 | --- | --- | --- |
 | `hook` | `yes` / `no` | `no` = Steps 5, 7, 8, 9 are `skipped`, no Product A; Product B is the whole video |
 | `captions` | `generate` / `burned_in` | `burned_in` → caption preset `park-caption-burned-in-v1`: captions are already in the picture; do not render captions in Steps 8, 9, 13, but keep word-level timing and keep every overlay out of the reserved caption band |
-| `layout` | `split-4x3` / `vertical-full-overlay` | `vertical-full-overlay` → media preset `park-talking-head-9x16-full-v1` + visual style `park-card-overlay-c-v1`: live face full-frame, graphics only as chest-zone cards |
+| `layout` | `split-4x3` / `vertical-full-overlay` | `vertical-full-overlay` → media preset `park-talking-head-9x16-full-v1` + visual style `park-vertical-director-v2`: live face full-frame; a director picks per passage from the `motion/` shot library — chest cards most of the time, a full-screen shot (covering face and captions) every 1.5–3 min. Follow [references/motion-director.md](references/motion-director.md) |
 | `visual_coverage_target` | 0–1 | Coverage target for Product B; inside 30–40% needs no exception |
 | `bgm` | `none` / `light` | `none` skips BGM in Step 12 (voice loudness still applies) |
 
@@ -112,7 +112,9 @@ After Picture Lock, use [references/visual-preview.md](references/visual-preview
 
 Pre-H2 preview rendering of limited stills/clips is authorized and required; whole production rendering remains blocked. Independent spec QA AND independent visual-preview/design QA must pass before `present-spec`. Show the actual images/clips, not just a source-video player or card names. Bind H2 to spec plus preview assets, layout and implementation hashes; edits invalidate affected evidence and approval. Preserve approved snapshots and changes.md.
 
-Default overlays occupy the right notes region with the live face retained; measure the actual rectangles. Full-frame/custom composition needs an explicit user choice. `spec.layout = vertical-full-overlay` is that explicit choice: follow `presets/visual/park-card-overlay-c-v1.json` (four card types mapped to ShotCraft cards, chest zone only, numbers and wording only as spoken). Evaluate added value against the unmodified footage and normal-speed pacing; do not extend static tails simply to fill a spoken paragraph or coverage target.
+Default overlays occupy the right notes region with the live face retained; measure the actual rectangles. Full-frame/custom composition needs an explicit user choice. `spec.layout = vertical-full-overlay` is that explicit choice: follow `presets/visual/park-vertical-director-v2.json` and [references/motion-director.md](references/motion-director.md) (shots from the `motion/` library, chest cards plus periodic full-screen shots that cover face and captions, numbers and wording only as spoken, client names/revenue redacted in shown documents). Evaluate added value against the unmodified footage and normal-speed pacing; do not extend static tails simply to fill a spoken paragraph or coverage target.
+
+For `vertical-full-overlay`, H2 is sample-first: Park approves 2–3 final-quality snippets (15–25 s each, with original audio and captions) of the most visually distinct passages. Do not present a text shot table as the review artifact — he cannot judge motion from text. After he approves the quality, render and composite the whole Product B without another gate.
 
 ### H3 — Final Approval after Step 14
 

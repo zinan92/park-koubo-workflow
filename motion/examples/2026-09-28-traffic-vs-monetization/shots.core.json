@@ -1,0 +1,979 @@
+{
+ "_说明": "2026-09-28《99% 的自媒体人都在追求流量》第二版（Park 9/29 认可）的镜头数据。组 A/B/C 的 X 镜头在 shots.*.json，合并脚本见 scripts/motion/timeline.py",
+ "shots": [
+  {
+   "id": "V01",
+   "component": "Odometer",
+   "start": 7.25,
+   "frames": 138,
+   "props": {
+    "digits": [
+     9,
+     9
+    ],
+    "suffix": "%",
+    "caption": "做自媒体的人里",
+    "label": "都在追求流量",
+    "labelAt": 82
+   }
+  },
+  {
+   "id": "V02",
+   "component": "MarkerNumber",
+   "start": 15.8,
+   "frames": 192,
+   "props": {
+    "lines": [
+     "流量只应该占你",
+     "时间、精力和思考的"
+    ],
+    "big": "20%",
+    "bigAt": 150
+   }
+  },
+  {
+   "id": "V04",
+   "component": "BlurRows",
+   "start": 38.3,
+   "frames": 228,
+   "props": {
+    "title": "半年前的我",
+    "rows": [
+     {
+      "at": 6,
+      "lead": "",
+      "num": "10",
+      "tail": "条视频"
+     },
+     {
+      "at": 90,
+      "lead": "涨了",
+      "num": "6000",
+      "tail": "粉丝"
+     },
+     {
+      "at": 189,
+      "lead": "每条",
+      "num": "15–20",
+      "tail": "分钟"
+     }
+    ]
+   }
+  },
+  {
+   "id": "V05",
+   "component": "Odometer",
+   "start": 49.8,
+   "frames": 102,
+   "props": {
+    "digits": [
+     1
+    ],
+    "prefix": "<",
+    "suffix": "%",
+    "caption": "完播率",
+    "label": "百分之一都没有",
+    "labelAt": 66
+   }
+  },
+  {
+   "id": "V07",
+   "component": "PillChain",
+   "start": 113.5,
+   "frames": 195,
+   "props": {
+    "title": "往下想一层",
+    "pills": [
+     {
+      "at": 36,
+      "text": "做流量"
+     },
+     {
+      "at": 114,
+      "text": "为了触达"
+     },
+     {
+      "at": 162,
+      "text": "触达到人群"
+     }
+    ]
+   }
+  },
+  {
+   "id": "F08",
+   "component": "PillChain",
+   "start": 128.1,
+   "frames": 284,
+   "props": {
+    "title": "你要触达的人群",
+    "pills": [
+     {
+      "at": 15,
+      "text": "想变现",
+      "sub": null
+     },
+     {
+      "at": 66,
+      "text": "独立的生意",
+      "sub": null
+     },
+     {
+      "at": 224,
+      "text": "会付费的人",
+      "sub": null
+     }
+    ]
+   }
+  },
+  {
+   "id": "F09",
+   "component": "BlurRows",
+   "start": 158.24,
+   "frames": 163,
+   "props": {
+    "title": "问自己两个问题",
+    "rows": [
+     {
+      "at": 15,
+      "lead": "①",
+      "num": "过去",
+      "tail": "谁在为你付费"
+     },
+     {
+      "at": 103,
+      "lead": "②",
+      "num": "现在",
+      "tail": "谁有钱、愿意付"
+     }
+    ],
+    "columns": 1
+   }
+  },
+  {
+   "id": "F11",
+   "component": "MarkerNumber",
+   "start": 228.4,
+   "frames": 105,
+   "props": {
+    "lines": [
+     "光看「有没有能力」",
+     "就先筛掉"
+    ],
+    "big": "50–60%",
+    "bigAt": 15
+   }
+  },
+  {
+   "id": "F12",
+   "component": "BlurRows",
+   "start": 236.22,
+   "frames": 163,
+   "props": {
+    "title": "愿意付费的人",
+    "rows": [
+     {
+      "at": 15,
+      "lead": "",
+      "num": "痛点",
+      "tail": "你能说中"
+     },
+     {
+      "at": 103,
+      "lead": "",
+      "num": "认知",
+      "tail": "只比你差一点"
+     }
+    ],
+    "columns": 1
+   }
+  },
+  {
+   "id": "F13",
+   "component": "MarkerNumber",
+   "start": 255.24,
+   "frames": 105,
+   "props": {
+    "lines": [
+     "没有付费的流量"
+    ],
+    "big": "没有价值",
+    "bigAt": 15
+   }
+  },
+  {
+   "id": "F14",
+   "component": "BlurRows",
+   "start": 280.36,
+   "frames": 105,
+   "props": {
+    "title": "不要等到 10 万粉丝",
+    "rows": [
+     {
+      "at": 15,
+      "lead": "",
+      "num": "今天",
+      "tail": "就开始"
+     }
+    ],
+    "columns": 1
+   }
+  },
+  {
+   "id": "F16",
+   "component": "PillChain",
+   "start": 302.36,
+   "frames": 154,
+   "props": {
+    "title": "很多人说",
+    "pills": [
+     {
+      "at": 15,
+      "text": "先做流量",
+      "sub": null
+     },
+     {
+      "at": 94,
+      "text": "再想变现",
+      "sub": null
+     }
+    ]
+   }
+  },
+  {
+   "id": "F17",
+   "component": "BlurRows",
+   "start": 319.6,
+   "frames": 182,
+   "props": {
+    "title": "说不想说的话",
+    "rows": [
+     {
+      "at": 15,
+      "lead": "第一",
+      "num": "消耗心力",
+      "tail": null
+     },
+     {
+      "at": 122,
+      "lead": "第二",
+      "num": "更加内耗",
+      "tail": null
+     }
+    ],
+    "columns": 1
+   }
+  },
+  {
+   "id": "F19",
+   "component": "Odometer",
+   "start": 340.96,
+   "frames": 135,
+   "props": {
+    "digits": [
+     8,
+     0
+    ],
+    "prefix": null,
+    "suffix": "分",
+    "caption": "我想说的是",
+    "label": "认知的内容",
+    "labelAt": 55
+   }
+  },
+  {
+   "id": "F22",
+   "component": "Odometer",
+   "start": 416.02,
+   "frames": 135,
+   "props": {
+    "digits": [
+     3
+    ],
+    "prefix": null,
+    "suffix": "条",
+    "caption": "自媒体变现",
+    "label": "总共三条路径",
+    "labelAt": 48
+   }
+  },
+  {
+   "id": "F25",
+   "component": "BlurRows",
+   "start": 462.48,
+   "frames": 239,
+   "props": {
+    "title": "① 广告收入",
+    "rows": [
+     {
+      "at": 15,
+      "lead": "单条 = 粉丝量的",
+      "num": "5–10%",
+      "tail": null
+     },
+     {
+      "at": 179,
+      "lead": "PR 抽成",
+      "num": "20–30%",
+      "tail": null
+     }
+    ],
+    "columns": 1
+   }
+  },
+  {
+   "id": "F26",
+   "component": "BlurRows",
+   "start": 473.04,
+   "frames": 138,
+   "props": {
+    "title": "按 10 万粉丝算",
+    "rows": [
+     {
+      "at": 15,
+      "lead": "一条",
+      "num": "5千–1万",
+      "tail": null
+     },
+     {
+      "at": 78,
+      "lead": "一个月 4 条",
+      "num": "2 万",
+      "tail": null
+     }
+    ],
+    "columns": 1
+   }
+  },
+  {
+   "id": "F27",
+   "component": "BlurRows",
+   "start": 489.3,
+   "frames": 105,
+   "props": {
+    "title": "② 流量收入",
+    "rows": [
+     {
+      "at": 15,
+      "lead": "几百万播放",
+      "num": "几千块",
+      "tail": null
+     }
+    ],
+    "columns": 1
+   }
+  },
+  {
+   "id": "F28",
+   "component": "PillChain",
+   "start": 496.44,
+   "frames": 105,
+   "props": {
+    "title": "流量是",
+    "pills": [
+     {
+      "at": 15,
+      "text": "平台的价值",
+      "sub": null
+     },
+     {
+      "at": 33,
+      "text": "不是你的价值",
+      "sub": null
+     }
+    ]
+   }
+  },
+  {
+   "id": "F29",
+   "component": "PillChain",
+   "start": 500.24,
+   "frames": 263,
+   "props": {
+    "title": "③ 我要走的路",
+    "pills": [
+     {
+      "at": 0,
+      "text": "咨询",
+      "sub": null
+     },
+     {
+      "at": 127,
+      "text": "课程",
+      "sub": null
+     },
+     {
+      "at": 203,
+      "text": "长期服务",
+      "sub": null
+     }
+    ]
+   }
+  },
+  {
+   "id": "F33",
+   "component": "BlurRows",
+   "start": 580.28,
+   "frames": 249,
+   "props": {
+    "title": "我的选题库",
+    "rows": [
+     {
+      "at": 15,
+      "lead": "还没拍的",
+      "num": "50–60 条",
+      "tail": null
+     },
+     {
+      "at": 137,
+      "lead": "每天新进",
+      "num": "20–30 条",
+      "tail": null
+     },
+     {
+      "at": 189,
+      "lead": "能深度展开",
+      "num": "5–10 条",
+      "tail": null
+     }
+    ],
+    "columns": 1
+   }
+  },
+  {
+   "id": "F34",
+   "component": "PillChain",
+   "start": 606.4,
+   "frames": 220,
+   "props": {
+    "title": "② 多平台",
+    "pills": [
+     {
+      "at": 15,
+      "text": "文字",
+      "sub": null
+     },
+     {
+      "at": 131,
+      "text": "语音",
+      "sub": null
+     },
+     {
+      "at": 160,
+      "text": "视频",
+      "sub": null
+     }
+    ]
+   }
+  },
+  {
+   "id": "N01",
+   "component": "FunnelIntro",
+   "start": 628.3,
+   "frames": 480,
+   "props": {
+    "caption": "每天触达",
+    "unit": "万",
+    "steps": [
+     {
+      "at": 630.74,
+      "value": "1"
+     },
+     {
+      "at": 632.22,
+      "value": "8"
+     },
+     {
+      "at": 636.14,
+      "value": "24"
+     }
+    ],
+    "chips": [
+     {
+      "at": 632.4,
+      "text": "× 8 个平台"
+     },
+     {
+      "at": 634.56,
+      "text": "× 每天 3 条"
+     }
+    ],
+    "layers": [
+     "流量",
+     "私信",
+     "咨询付费",
+     "深度付费"
+    ],
+    "chain": [
+     {
+      "at": 639.36,
+      "text": "流量"
+     },
+     {
+      "at": 639.36,
+      "text": "触达"
+     },
+     {
+      "at": 641.34,
+      "text": "转化"
+     }
+    ]
+   }
+  },
+  {
+   "id": "F37",
+   "component": "Odometer",
+   "start": 673.44,
+   "frames": 135,
+   "props": {
+    "digits": [
+     1
+    ],
+    "prefix": null,
+    "suffix": "万",
+    "caption": "每天有效触达",
+    "label": "说明产品力够强",
+    "labelAt": 48
+   }
+  },
+  {
+   "id": "N04",
+   "component": "FunnelLight",
+   "start": 689.0,
+   "frames": 954,
+   "props": {
+    "layers": [
+     "流量",
+     "私信",
+     "咨询付费",
+     "深度付费"
+    ],
+    "caption": "每天触达",
+    "topValue": "1",
+    "unit": "万",
+    "topLayerValue": "1 万/天",
+    "topAt": 689.46,
+    "topTag": "按 1 万算",
+    "lits": [
+     {
+      "layer": 1,
+      "at": 694.02,
+      "value": "10 条/天"
+     },
+     {
+      "layer": 2,
+      "at": 708.34,
+      "value": "3–5 人",
+      "sub": {
+       "at": 714.2,
+       "text": "× 1K"
+      }
+     }
+    ],
+    "ratios": [
+     {
+      "between": 1,
+      "at": 692.42,
+      "text": "千分之一"
+     },
+     {
+      "between": 2,
+      "at": 707.38,
+      "text": "10 个里"
+     }
+    ],
+    "result": {
+     "at": 716.9,
+     "lead": "一天",
+     "big": "2–3K"
+    }
+   }
+  },
+  {
+   "id": "N02",
+   "component": "DocScroll",
+   "start": 720.9,
+   "frames": 480,
+   "props": {
+    "src": "client.png",
+    "label": "发给客户的咨询纪要",
+    "meta": {
+     "w": 900,
+     "h": 4820,
+     "h2": [
+      {
+       "top": 617,
+       "bottom": 664
+      },
+      {
+       "top": 1507,
+       "bottom": 1555
+      },
+      {
+       "top": 2011,
+       "bottom": 2057
+      },
+      {
+       "top": 3018,
+       "bottom": 3066
+      },
+      {
+       "top": 3801,
+       "bottom": 3849
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "F44",
+   "component": "BlurRows",
+   "start": 774.42,
+   "frames": 133,
+   "props": {
+    "title": "关键时刻",
+    "rows": [
+     {
+      "at": 15,
+      "lead": "跟我聊",
+      "num": "1 小时",
+      "tail": null
+     },
+     {
+      "at": 73,
+      "lead": "比你自己想",
+      "num": "1 个月",
+      "tail": null
+     }
+    ],
+    "columns": 1
+   }
+  },
+  {
+   "id": "F45",
+   "component": "MarkerNumber",
+   "start": 789.78,
+   "frames": 105,
+   "props": {
+    "lines": [
+     "每天两三个客户",
+     "付费咨询就够我月入"
+    ],
+    "big": "100K",
+    "bigAt": 15
+   }
+  },
+  {
+   "id": "N03",
+   "component": "DocStackBrake",
+   "start": 837.6,
+   "frames": 564,
+   "props": {
+    "headers": {
+     "before": "每次咨询完，给他两份文件",
+     "after": "行业调研 · AI 做的"
+    },
+    "docs": [
+     {
+      "src": "client.png",
+      "tag": "① 对话结论"
+     },
+     {
+      "src": "report.png",
+      "tag": "② 行业分析 · AI 做的"
+     }
+    ],
+    "cues": {
+     "deal": 838.7,
+     "f1": 839.8,
+     "f2": 842.66,
+     "open": 844.7,
+     "go": 846.2,
+     "lock": 847.9,
+     "drift": 849.2
+    },
+    "report": {
+     "h": 11840,
+     "h2": [
+      {
+       "top": 938
+      },
+      {
+       "top": 2733
+      },
+      {
+       "top": 5299
+      },
+      {
+       "top": 6459
+      },
+      {
+       "top": 8776
+      },
+      {
+       "top": 10116
+      }
+     ]
+    },
+    "sections": [
+     "核心结论",
+     "一 · 需求和规模",
+     "二 · 财报对照",
+     "三 · 平台对标",
+     "四 · AI + 实物"
+    ],
+    "stopAt": 3,
+    "table": {
+     "top": 6585,
+     "bottom": 8177,
+     "col": {
+      "left": 243,
+      "right": 450
+     }
+    },
+    "lockLabel": "他要找的对标"
+   }
+  },
+  {
+   "id": "F48",
+   "component": "MarkerNumber",
+   "start": 856.68,
+   "frames": 105,
+   "props": {
+    "lines": [
+     "陪他把生意找到"
+    ],
+    "big": "第二曲线",
+    "bigAt": 15
+   }
+  },
+  {
+   "id": "N05",
+   "component": "FunnelLight",
+   "start": 880.0,
+   "frames": 1176,
+   "props": {
+    "layers": [
+     "流量",
+     "私信",
+     "咨询付费",
+     "深度付费"
+    ],
+    "caption": "每天触达",
+    "topValue": "1",
+    "unit": "万",
+    "topLayerValue": "1 万/天",
+    "topAt": 881.98,
+    "lits": [
+     {
+      "layer": 1,
+      "at": 883.36,
+      "value": "10 人"
+     },
+     {
+      "layer": 2,
+      "at": 885.44,
+      "value": "5 人"
+     },
+     {
+      "layer": 3,
+      "at": 889.54,
+      "value": "5 万客单价",
+      "sub": {
+       "at": 896.68,
+       "text": "按月服务"
+      }
+     }
+    ],
+    "ratios": [
+     {
+      "between": 3,
+      "at": 889.54,
+      "text": "20–30%"
+     }
+    ],
+    "brackets": {
+     "front": {
+      "at": 914.34,
+      "big": "前端",
+      "small": "流量"
+     },
+     "back": {
+      "at": 916.26,
+      "big": "后端",
+      "small": "你的产品"
+     }
+    }
+   }
+  },
+  {
+   "id": "F52",
+   "component": "BlurRows",
+   "start": 949.66,
+   "frames": 138,
+   "props": {
+    "title": "产品够强，不需要销售",
+    "rows": [
+     {
+      "at": 15,
+      "lead": "iPhone",
+      "num": "1.2–1.5 万",
+      "tail": null
+     },
+     {
+      "at": 78,
+      "lead": "别人卖",
+      "num": "5000",
+      "tail": null
+     }
+    ],
+    "columns": 1
+   }
+  },
+  {
+   "id": "F53",
+   "component": "BlurRows",
+   "start": 966.44,
+   "frames": 373,
+   "props": {
+    "title": "只需要很小的流量",
+    "rows": [
+     {
+      "at": 15,
+      "lead": "每天触达",
+      "num": "1 万",
+      "tail": null
+     },
+     {
+      "at": 284,
+      "lead": "成交",
+      "num": "万分之一",
+      "tail": null
+     },
+     {
+      "at": 313,
+      "lead": "每天",
+      "num": "1 个客户",
+      "tail": null
+     }
+    ],
+    "columns": 1
+   }
+  },
+  {
+   "id": "F54",
+   "component": "Odometer",
+   "start": 990.3,
+   "frames": 135,
+   "props": {
+    "digits": [
+     1,
+     1,
+     0,
+     0
+    ],
+    "prefix": null,
+    "suffix": "万",
+    "caption": "Claude 上半年封了",
+    "label": "大家还求着用",
+    "labelAt": 69
+   }
+  },
+  {
+   "id": "F55",
+   "component": "PillChain",
+   "start": 1007.32,
+   "frames": 116,
+   "props": {
+    "title": "产品力不强，才需要",
+    "pills": [
+     {
+      "at": 15,
+      "text": "销售",
+      "sub": null
+     },
+     {
+      "at": 56,
+      "text": "话术",
+      "sub": null
+     }
+    ]
+   }
+  },
+  {
+   "id": "F56",
+   "component": "BlurRows",
+   "start": 1011.5,
+   "frames": 134,
+   "props": {
+    "title": "真正该打磨的",
+    "rows": [
+     {
+      "at": 10,
+      "lead": "不是",
+      "num": "流量",
+      "tail": null
+     },
+     {
+      "at": 74,
+      "lead": "而是",
+      "num": "产品和后端",
+      "tail": null
+     }
+    ],
+    "columns": 1
+   }
+  },
+  {
+   "id": "F59",
+   "component": "PillChain",
+   "start": 1076.96,
+   "frames": 241,
+   "props": {
+    "title": "最后",
+    "pills": [
+     {
+      "at": 15,
+      "text": "做好后端",
+      "sub": null
+     },
+     {
+      "at": 181,
+      "text": "心流 > 技巧",
+      "sub": null
+     }
+    ]
+   }
+  },
+  {
+   "id": "F60",
+   "component": "MarkerNumber",
+   "start": 1089.0,
+   "frames": 105,
+   "props": {
+    "lines": [
+     "坚持下去，一定会有很大的提高"
+    ],
+    "big": "3 个月",
+    "bigAt": 15
+   }
+  },
+  {
+   "id": "F61",
+   "component": "BlurRows",
+   "start": 1098.3,
+   "frames": 105,
+   "props": {
+    "title": "99% 的人",
+    "rows": [
+     {
+      "at": 15,
+      "lead": "花一辈子",
+      "num": "了解行业",
+      "tail": null
+     }
+    ],
+    "columns": 1
+   }
+  }
+ ]
+}

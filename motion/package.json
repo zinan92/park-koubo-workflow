@@ -1,0 +1,15 @@
+{
+  "name": "park-motion",
+  "private": true,
+  "description": "Park 口播视频的动效镜头库：ShotCraft 镜头卡改编成竖屏纸墨中文组件，按 src/shots.json 注册，渲染透明图层叠到口播上",
+  "scripts": {
+    "compositions": "remotion compositions src/index.ts",
+    "studio": "remotion studio src/index.ts"
+  },
+  "dependencies": {
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "remotion": "4.0.484",
+    "@remotion/cli": "4.0.484"
+  }
+}

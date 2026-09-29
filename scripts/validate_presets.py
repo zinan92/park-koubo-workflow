@@ -62,4 +62,22 @@ require(burned["renderer_contract"]["render_captions"] is False, "burned-in pres
 require(vmedia["layout"]["visual_style"] == cards["id"], "vertical layout points to the wrong card style")
 require(set(cards["types"]) == {"odometer", "marker", "rows", "chain"}, "card types drifted")
 
-print("PASS 4 production presets + vertical/burned-in overrides are valid and cross-consistent")
+
+
+# 竖屏导演混剪（v2，取代只用胸前卡片的 C v1）：全屏盖满、胸前卡片区不变、镜头库 catalog 都能对上
+director = load_path("presets/visual/park-vertical-director-v2.json")
+require(director["supersedes"] == cards["id"], "director preset must supersede the chest-card preset")
+chest = director["sizes"]["chest"]
+require(chest["x"][1] <= 900 and chest["bottom"] <= band[0] * vmedia["video"]["height"], "chest cards drifted into the button column or caption band")
+full = director["sizes"]["full"]
+require(full["canvas"] == [vmedia["video"]["width"], vmedia["video"]["height"]] and full["covers_captions"], "full-screen shots must cover the whole frame incl. captions")
+require((ROOT / director["director"]).is_file(), "director reference missing")
+import re as _re
+_names = set()
+for _ts in (ROOT / "motion/src/catalog").glob("*.ts"):
+    _names |= set(_re.findall(r"^\s*(\w+):\s*\{\s*component:", _ts.read_text(encoding="utf-8"), _re.M))
+for _ex in (ROOT / "motion/examples").glob("*/shots*.json"):
+    for _s in json.loads(_ex.read_text(encoding="utf-8"))["shots"]:
+        require(_s["component"] in _names, f"{_ex.parent.name}/{_ex.name}: {_s['id']} uses unknown component {_s['component']}")
+
+print("PASS 4 production presets + vertical/burned-in overrides + director v2 are valid and cross-consistent")

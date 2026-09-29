@@ -1,0 +1,63 @@
+{
+ "_说明": "2026-09-28《99% 的自媒体人都在追求流量》第二版组 B（Park 9/29 认可）。at 都是口播原片绝对秒；为了和 trial 版逐帧一致，个别时刻取了和词级时间差 ≤0.1 秒的值（如 rainAt、arriveAt）。",
+ "shots": [
+  {
+   "id": "X02", "component": "SandRainBars", "start": 70.0, "frames": 249,
+   "props": {
+    "bars": [
+     { "cat": "1 条", "num": "20", "unit": "万", "height": 20, "catAt": 71.44, "rainAt": 70.93, "valueAt": 72.54 },
+     { "cat": "2 条", "num": "10", "unit": "万", "height": 10, "catAt": 73.22, "rainAt": 72.73, "valueAt": 73.76 },
+     { "cat": "几条", "num": "7–8", "unit": "万", "height": 7.5, "catAt": 74.44, "rainAt": 73.83, "valueAt": 74.80 },
+     { "cat": "几条", "num": "3–4", "unit": "万", "height": 3.5, "catAt": 74.44, "rainAt": 74.13, "valueAt": 75.30 }
+    ],
+    "footer": { "at": 76.60, "text": "每一条都上万" }
+   }
+  },
+  {
+   "id": "X06a", "component": "FanGapBars", "start": 382.6, "frames": 222,
+   "props": {
+    "big": { "label": "点赞", "value": "10–20", "unit": "万", "labelAt": 383.02, "valueAt": 384.18,
+      "stages": [ { "arriveAt": 383.63, "frac": 0.5 }, { "arriveAt": 384.27, "frac": 1 } ] },
+    "tiny": { "label": "粉丝", "value": "300–400", "labelAt": 386.00, "valueAt": 386.60, "barAt": 386.60 }
+   }
+  },
+  {
+   "id": "X06b", "component": "FanGapBars", "start": 398.4, "frames": 150,
+   "props": {
+    "big": { "label": "播放", "value": "500", "unit": "万", "labelAt": 399.08, "valueAt": 399.08,
+      "stages": [ { "arriveAt": 399.17, "frac": 1 } ] },
+    "tiny": { "label": "粉丝", "value": "500–1000", "labelAt": 400.84, "valueAt": 401.30, "barAt": 401.23 },
+    "footer": { "at": 401.74, "text": "你会关注吗？" }
+   }
+  },
+  {
+   "id": "X07", "component": "AvatarRingGrid", "start": 432.8, "frames": 228,
+   "props": {
+    "count": { "at": 433.26, "num": "40–50", "unit": "个" },
+    "sub": { "at": 434.60, "text": "AI 博主" },
+    "pick": { "from": 435.20, "to": 437.60 },
+    "sweep": { "at": 437.82, "text": "全都拿来分析" }
+   }
+  },
+  {
+   "id": "X10", "component": "RainStackMerge", "start": 567.0, "frames": 225,
+   "props": {
+    "unit": "万", "copies": 10,
+    "other": { "cat": "别人 1 条", "value": "10", "catAt": 567.82, "rainAt": 567.40, "valueAt": 568.62 },
+    "mine": { "cat": "我 1 条", "value": "1", "at": 569.48, "valueAt": 570.32 },
+    "many": { "cat": "我发 10 条", "at": 570.90 },
+    "merge": { "at": 571.74, "value": "10", "prefix": "=", "valueAt": 572.36 }
+   }
+  },
+  {
+   "id": "X16", "component": "GaugeFrontBack", "start": 919.3, "frames": 171,
+   "props": {
+    "caption": { "strong": "99%", "rest": "的人" },
+    "value": { "at": 920.76, "pct": 90, "text": "90", "unit": "%" },
+    "main": { "at": 922.24, "text": "前端" },
+    "rest": { "at": 922.72, "text": "后端" },
+    "note": { "at": 923.26, "text": "没有人想过" }
+   }
+  }
+ ]
+}
