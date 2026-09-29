@@ -25,7 +25,8 @@ After exporting from 剪映, Park picks these by hand in content-studio's 剪辑
 | `hook` | `yes` / `no` | `no` = Steps 5, 7, 8, 9 are `skipped`, no Product A; Product B is the whole video |
 | `captions` | `generate` / `burned_in` | `burned_in` → caption preset `park-caption-burned-in-v1`: captions are already in the picture; do not render captions in Steps 8, 9, 13, but keep word-level timing and keep every overlay out of the reserved caption band |
 | `layout` | `split-4x3` / `vertical-full-overlay` | `vertical-full-overlay` → media preset `park-talking-head-9x16-full-v1` + visual style `park-vertical-director-v2`: live face full-frame; a director picks per passage from the `motion/` shot library — chest cards most of the time, a full-screen shot (covering face and captions) every 1.5–3 min. Follow [references/motion-director.md](references/motion-director.md) |
-| `visual_coverage_target` | 0–1 | Coverage target for Product B; inside 30–40% needs no exception |
+| `visual_coverage_target` (+ optional `visual_coverage_max`, top-level in `project.json`) | 0–1 | Coverage target for Product B. With a max it is a range (e.g. 0.3–0.4): land inside it, pick shots by content, never add filler to hit a number. A range inside 30–40% needs no exception |
+| `sfx` | `none` / `low` / `mid` / `high` | Sound effects under the voice. `low`: only the one or two most important moments; `mid`: every full-screen shot in/out plus key numbers and conclusions; `high`: also chest cards and number locks. Never compete with the voice. Missing = `none` |
 | `bgm` | `none` / `light` | `none` skips BGM in Step 12 (voice loudness still applies) |
 
 A `spec` choice is the "named, versioned project override" above: write the matching preset IDs into `presets` at Step 1 and do not block on aspect ratio when `spec.layout` matches the footage. A missing key means the old default for that key.
