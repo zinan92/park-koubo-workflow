@@ -15,7 +15,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('project')
     parser.add_argument('--provider', choices=('claude', 'codex'), required=True)
-    parser.add_argument('--timeout', type=int, default=300)
+    parser.add_argument('--timeout', type=int, default=900)
     args = parser.parse_args()
     project = Path(args.project).resolve()
     qa = project / 'qa'
